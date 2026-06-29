@@ -160,7 +160,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 <Users size={17} className="shrink-0" />
                 <span>Requester</span>
               </div>
-              {isRequesterOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <ChevronDown size={16} className={`transition-transform duration-200 ${isRequesterOpen ? "rotate-180" : ""}`} />
             </button>
             
             {/* Requester Submenu */}
@@ -207,7 +207,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 <Database size={17} className="shrink-0" />
                 <span>Issuer</span>
               </div>
-              {isIssuerOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <ChevronDown size={16} className={`transition-transform duration-200 ${isIssuerOpen ? "rotate-180" : ""}`} />
             </button>
             <div className={`mt-1 pl-3.5 space-y-0.5 overflow-hidden transition-all duration-200 ${isIssuerOpen ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}>
               <button className="flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] text-white/60 hover:text-white text-left cursor-pointer">
@@ -231,7 +231,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 <Cpu size={17} className="shrink-0" />
                 <span>API Management</span>
               </div>
-              {isApiOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <ChevronDown size={16} className={`transition-transform duration-200 ${isApiOpen ? "rotate-180" : ""}`} />
             </button>
 
             <div
@@ -280,7 +280,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 <Activity size={17} className="shrink-0" />
                 <span>API Logs &amp; Mon.</span>
               </div>
-              {isApiLogsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <ChevronDown size={16} className={`transition-transform duration-200 ${isApiLogsOpen ? "rotate-180" : ""}`} />
             </button>
           </div>
 
@@ -294,7 +294,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 <BarChart3 size={17} className="shrink-0" />
                 <span>Reports</span>
               </div>
-              {isReportsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <ChevronDown size={16} className={`transition-transform duration-200 ${isReportsOpen ? "rotate-180" : ""}`} />
             </button>
           </div>
 
@@ -308,7 +308,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 <UserCog size={17} className="shrink-0" />
                 <span>Users &amp; Roles</span>
               </div>
-              {isUsersOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <ChevronDown size={16} className={`transition-transform duration-200 ${isUsersOpen ? "rotate-180" : ""}`} />
             </button>
           </div>
 
@@ -322,7 +322,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 <Settings size={17} className="shrink-0" />
                 <span>Settings</span>
               </div>
-              {isSettingsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <ChevronDown size={16} className={`transition-transform duration-200 ${isSettingsOpen ? "rotate-180" : ""}`} />
             </button>
           </div>
 
