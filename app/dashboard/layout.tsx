@@ -19,6 +19,13 @@ import {
   FilePlus2,
   ClipboardList,
   PanelTop,
+  Boxes,
+  Link2,
+  UserRoundPlus,
+  ChartNoAxesCombined,
+  ScrollText,
+  KeyRound,
+  FileText,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -31,20 +38,21 @@ export default function DashboardLayout({ children }: LayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Accordion Menu States
-  const [isRequesterOpen, setIsRequesterOpen] = useState(true);
-  const [isIssuerOpen, setIsIssuerOpen] = useState(false);
-  const [isApiOpen, setIsApiOpen] = useState(false);
-  const [isApiLogsOpen, setIsApiLogsOpen] = useState(false);
-  const [isReportsOpen, setIsReportsOpen] = useState(false);
-  const [isUsersOpen, setIsUsersOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  // Accordion Menu State (only one open at a time, closed by default on reload/login)
+  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+
+  const toggleAccordion = (name: string) => {
+    setOpenAccordion((prev) => (prev === name ? null : name));
+  };
 
   const handleNavigation = (path: string) => {
     if (path.includes("/dashboard/requester")) {
-      setIsRequesterOpen(true);
+      setOpenAccordion("requester");
+    } else if (path.includes("/dashboard/api-management")) {
+      setOpenAccordion("api");
+    } else {
+      setOpenAccordion(null);
     }
-
     router.push(path);
   };
 
@@ -55,15 +63,31 @@ export default function DashboardLayout({ children }: LayoutProps) {
 
   // Helper to detect active sub menu item
   const isActiveSub = (path: string) => {
+    if (path === "/dashboard/api-management/documentation") {
+      return pathname === path || pathname.includes("/documentation");
+    }
+    if (path === "/dashboard/api-management/api-catalog") {
+      return pathname === path || (pathname.startsWith(path) && !pathname.includes("/documentation"));
+    }
     return pathname === path;
   };
 
   // Breadcrumbs builder
   const getBreadcrumbs = () => {
+    const BREADCRUMB_MAP: Record<string, string> = {
+      "api-management": "API Management",
+      "api-catalog": "API Catalog",
+      "document-retrieval": "Document Retrieval API",
+      "ekyc-verification": "eKYC Verification API",
+      "account-statement": "Account Statement API",
+      "loan-document": "Loan Document API",
+      "bank-branch-locator": "Bank Branch Locator API",
+      "overview": "Overview",
+    };
+
     const parts = pathname.split("/").filter(Boolean);
     return parts.map((part, index) => {
-      // capitalize first letter
-      const label = part.charAt(0).toUpperCase() + part.slice(1).replace("-", " ");
+      const label = BREADCRUMB_MAP[part] || (part.charAt(0).toUpperCase() + part.slice(1).replace("-", " "));
       return {
         label,
         isLast: index === parts.length - 1,
@@ -73,6 +97,14 @@ export default function DashboardLayout({ children }: LayoutProps) {
   };
 
   const breadcrumbs = getBreadcrumbs();
+
+  const isRequesterOpen = openAccordion === "requester";
+  const isIssuerOpen = openAccordion === "issuer";
+  const isApiOpen = openAccordion === "api";
+  const isApiLogsOpen = openAccordion === "apiLogs";
+  const isReportsOpen = openAccordion === "reports";
+  const isUsersOpen = openAccordion === "users";
+  const isSettingsOpen = openAccordion === "settings";
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#f4f7fe] font-manrope">
@@ -117,7 +149,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
           {/* 2. Requester Menu (Accordion) */}
           <div>
             <button
-              onClick={() => setIsRequesterOpen(!isRequesterOpen)}
+              onClick={() => toggleAccordion("requester")}
               className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${
                 pathname.includes("/dashboard/requester")
                   ? "text-white bg-white/5"
@@ -168,7 +200,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
           {/* 3. Issuer Menu (Accordion) */}
           <div>
             <button
-              onClick={() => setIsIssuerOpen(!isIssuerOpen)}
+              onClick={() => toggleAccordion("issuer")}
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
             >
               <div className="flex items-center gap-3">
@@ -188,8 +220,12 @@ export default function DashboardLayout({ children }: LayoutProps) {
           {/* 4. API Management */}
           <div>
             <button
-              onClick={() => setIsApiOpen(!isApiOpen)}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
+              onClick={() => toggleAccordion("api")}
+              className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${
+                pathname.includes("/dashboard/api-management")
+                  ? "text-white bg-white/5"
+                  : "text-white/70 hover:bg-white/5 hover:text-white"
+              }`}
             >
               <div className="flex items-center gap-3">
                 <Cpu size={17} className="shrink-0" />
@@ -197,12 +233,47 @@ export default function DashboardLayout({ children }: LayoutProps) {
               </div>
               {isApiOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
+
+            <div
+              className={`mt-1 pl-3.5 space-y-0.5 transition-all duration-300 overflow-hidden ${
+                isApiOpen ? "max-h-[310px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+              }`}
+            >
+              {[
+                { label: "Overview", path: "/dashboard/api-management/overview", icon: PanelTop },
+                { label: "API Catalog", path: "/dashboard/api-management/api-catalog", icon: Boxes },
+                { label: "Documentation", path: "/dashboard/api-management/documentation", icon: FileText },
+                // { label: "Subscriptions", path: "/dashboard/api-management/subscriptions", icon: Link2 },
+                // { label: "Vendor/Client Onboarding", path: "/dashboard/api-management/vendor-onboarding", icon: UserRoundPlus },
+                // { label: "API Analytics", path: "/dashboard/api-management/analytics", icon: ChartNoAxesCombined },
+                // { label: "API Logs", path: "/dashboard/api-management/logs", icon: ScrollText },
+                // { label: "API Keys", path: "/dashboard/api-management/keys", icon: KeyRound },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isActive = isActiveSub(item.path);
+
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] font-semibold transition-all duration-150 text-left cursor-pointer ${
+                      isActive
+                        ? "bg-[#0072ad] text-white shadow-[0_3px_10px_rgba(0,114,173,0.2)]"
+                        : "text-white/60 hover:bg-white/4 hover:text-white"
+                    }`}
+                  >
+                    <Icon size={14} aria-hidden="true" className="shrink-0" />
+                    <span className="whitespace-nowrap">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* 5. API Logs & Monitoring */}
           <div>
             <button
-              onClick={() => setIsApiLogsOpen(!isApiLogsOpen)}
+              onClick={() => toggleAccordion("apiLogs")}
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
             >
               <div className="flex items-center gap-3">
@@ -216,7 +287,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
           {/* 6. Reports */}
           <div>
             <button
-              onClick={() => setIsReportsOpen(!isReportsOpen)}
+              onClick={() => toggleAccordion("reports")}
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
             >
               <div className="flex items-center gap-3">
@@ -230,7 +301,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
           {/* 7. Users & Roles */}
           <div>
             <button
-              onClick={() => setIsUsersOpen(!isUsersOpen)}
+              onClick={() => toggleAccordion("users")}
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
             >
               <div className="flex items-center gap-3">
@@ -244,7 +315,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
           {/* 8. Settings */}
           <div>
             <button
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              onClick={() => toggleAccordion("settings")}
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
             >
               <div className="flex items-center gap-3">
