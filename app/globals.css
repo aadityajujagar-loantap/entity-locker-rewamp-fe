@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -13,7 +13,7 @@
   --color-panel-bg: #f0f4ff;
   --color-card-bg: rgba(255, 255, 255, 0.97);
 
-  --font-manrope: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif;
+  --font-manrope: 'Manrope', 'Roboto', Arial, sans-serif;
 }
 
 @layer base {
@@ -29,6 +29,7 @@
     background-color: var(--color-panel-bg);
     color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow: hidden;
   }
 }
