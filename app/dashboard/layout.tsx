@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -13,20 +13,15 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  ChevronUp,
   Bell,
   ChevronRight,
   FilePlus2,
   ClipboardList,
   PanelTop,
   Boxes,
-  Link2,
-  UserRoundPlus,
-  ChartNoAxesCombined,
-  ScrollText,
-  KeyRound,
   FileText,
 } from "lucide-react";
+import { clearAuthSession, getAuthSession, logoutFromPortal, subscribeAuthSession } from "@/lib/auth";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,12 +29,32 @@ interface LayoutProps {
 
 const COPYRIGHT_YEAR = "2026";
 
+function getInitials(name: string) {
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
+
+  return initials || "U";
+}
+
 export default function DashboardLayout({ children }: LayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const authSession = useSyncExternalStore(subscribeAuthSession, getAuthSession, () => null);
 
   // Accordion Menu State (only one open at a time, closed by default on reload/login)
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    if (!authSession) {
+      router.replace("/login");
+    }
+  }, [authSession, router]);
 
   const toggleAccordion = (name: string) => {
     setOpenAccordion((prev) => (prev === name ? null : name));
@@ -54,6 +69,23 @@ export default function DashboardLayout({ children }: LayoutProps) {
       setOpenAccordion(null);
     }
     router.push(path);
+  };
+
+  const handleLogout = async () => {
+    if (isLoggingOut) {
+      return;
+    }
+
+    setIsLoggingOut(true);
+
+    try {
+      if (authSession) {
+        await logoutFromPortal(authSession);
+      }
+    } finally {
+      clearAuthSession();
+      router.replace("/login");
+    }
   };
 
   // Helper to detect active main menu item
@@ -97,6 +129,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
   };
 
   const breadcrumbs = getBreadcrumbs();
+  const userDisplayName = authSession?.user.name || authSession?.user.employeeId || "User";
+  const userInitials = getInitials(userDisplayName);
 
   const isRequesterOpen = openAccordion === "requester";
   const isIssuerOpen = openAccordion === "issuer";
@@ -105,6 +139,14 @@ export default function DashboardLayout({ children }: LayoutProps) {
   const isReportsOpen = openAccordion === "reports";
   const isUsersOpen = openAccordion === "users";
   const isSettingsOpen = openAccordion === "settings";
+
+  if (!authSession) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[#f4f7fe] font-manrope text-[13px] font-bold text-[#5e6272]">
+        Checking session...
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#f4f7fe] font-manrope">
@@ -332,11 +374,14 @@ export default function DashboardLayout({ children }: LayoutProps) {
         <div className="relative z-10 mt-auto px-3 pt-3 pb-1 shrink-0 flex flex-col items-center select-none border-t border-white/8">
           {/* Logout Link */}
           <button
-            onClick={() => handleNavigation("/login")}
-            className="flex items-center gap-3 w-full px-3 py-1.5 rounded-[9px] text-[13px] font-bold text-white/80 hover:bg-white/5 hover:text-red-300 transition-colors duration-150 mb-[116px] cursor-pointer"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className={`flex items-center gap-3 w-full px-3 py-1.5 rounded-[9px] text-[13px] font-bold text-white/80 hover:bg-white/5 hover:text-red-300 transition-colors duration-150 mb-[116px] ${
+              isLoggingOut ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+            }`}
           >
             <LogOut size={17} className="shrink-0" />
-            <span>Logout</span>
+            <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
           </button>
 
           <span className="self-start px-1 text-[10px] text-white/70 font-medium leading-[1.45] flex flex-col justify-center items-center">
@@ -393,11 +438,11 @@ export default function DashboardLayout({ children }: LayoutProps) {
             {/* Profile Dropdown */}
             <button className="flex items-center gap-2.5 text-left border-0 bg-transparent p-0 hover:opacity-90 transition-opacity cursor-pointer shrink-0">
               <div className="w-[36px] h-[36px] rounded-full bg-neutral-100 flex items-center justify-center border border-[#e3e4ee] text-bom-blue-mid font-extrabold text-[14px]">
-                AU
+                {userInitials}
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-text-mid uppercase leading-none mb-0.5">Welcome,</span>
-                <span className="text-[13px] font-extrabold text-text-primary leading-none">Admin User</span>
+                <span className="text-[13px] font-extrabold text-text-primary leading-none">{userDisplayName}</span>
               </div>
               <ChevronDown size={14} className="text-text-mid ml-1" />
             </button>
