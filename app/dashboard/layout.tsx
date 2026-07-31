@@ -20,8 +20,10 @@ import {
   PanelTop,
   Boxes,
   FileText,
+  Building2,
 } from "lucide-react";
 import { clearAuthSession, getAuthSession, logoutFromPortal, subscribeAuthSession } from "@/lib/auth";
+import { UserProfileModal } from "@/components/UserProfileModal";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -49,6 +51,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
   // Accordion Menu State (only one open at a time, closed by default on reload/login)
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     if (!authSession) {
@@ -214,6 +217,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
               {[
                 { label: "Create Request", path: "/dashboard/requester/create-request", icon: FilePlus2 },
                 { label: "Request List", path: "/dashboard/requester/request-list", icon: ClipboardList },
+                { label: "Entity List", path: "/dashboard/requester/entity-list", icon: Building2 },
                 // { label: "Shared Link Status", path: "/dashboard/requester/shared-link-status", icon: Link2 },
                 // { label: "Consent History", path: "/dashboard/requester/consent-history", icon: History },
                 // { label: "Document List", path: "/dashboard/requester/document-list", icon: FileStack },
@@ -436,7 +440,11 @@ export default function DashboardLayout({ children }: LayoutProps) {
             <div className="w-[1.5px] h-[34px] bg-neutral-200 shrink-0" />
 
             {/* Profile Dropdown */}
-            <button className="flex items-center gap-2.5 text-left border-0 bg-transparent p-0 hover:opacity-90 transition-opacity cursor-pointer shrink-0">
+            <button
+              onClick={() => setIsProfileModalOpen(true)}
+              className="flex items-center gap-2.5 text-left border-0 bg-transparent p-0 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+              title="Click to view full user profile"
+            >
               <div className="w-[36px] h-[36px] rounded-full bg-neutral-100 flex items-center justify-center border border-[#e3e4ee] text-bom-blue-mid font-extrabold text-[14px]">
                 {userInitials}
               </div>
@@ -462,6 +470,13 @@ export default function DashboardLayout({ children }: LayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        accessToken={authSession?.accessToken || ""}
+      />
     </div>
   );
 }
