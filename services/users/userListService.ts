@@ -1,21 +1,6 @@
 import { getPortalApiBaseUrl } from "@/lib/auth";
 
-export interface UserRolePivot {
-  model_type?: string;
-  model_id?: number;
-  role_id?: number;
-}
-
-export interface UserRole {
-  id: number;
-  name: string;
-  guard_name?: string;
-  created_at?: string;
-  updated_at?: string;
-  pivot?: UserRolePivot;
-}
-
-export interface CurrentUserProfile {
+export interface UserItem {
   id: number;
   employee_id: string | null;
   pf_number: string | null;
@@ -27,18 +12,15 @@ export interface CurrentUserProfile {
   status: string | null;
   last_login_at: string | null;
   password_changed_at: string | null;
-  email_verified_at: string | null;
+  roles: string[];
   created_at: string | null;
   updated_at: string | null;
-  created_by: string | null;
-  updated_by: string | null;
-  roles: UserRole[];
 }
 
-export interface CurrentUserApiResponse {
+export interface UserListApiResponse {
   status: string;
   statusCode: number;
-  responseData: CurrentUserProfile;
+  responseData: UserItem[];
   success: boolean;
   message: string;
   meta?: {
@@ -47,9 +29,9 @@ export interface CurrentUserApiResponse {
   };
 }
 
-export async function fetchCurrentUserProfile(accessToken: string): Promise<CurrentUserProfile> {
+export async function fetchUserList(accessToken: string): Promise<UserItem[]> {
   const baseUrl = getPortalApiBaseUrl();
-  const response = await fetch(`${baseUrl}/auth/me`, {
+  const response = await fetch(`${baseUrl}/users`, {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -61,16 +43,16 @@ export async function fetchCurrentUserProfile(accessToken: string): Promise<Curr
   const payload: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
-    let errorMsg = `Error ${response.status}: Failed to fetch user details.`;
+    let errorMsg = `Error ${response.status}: Failed to fetch user list.`;
     if (payload && typeof payload === "object" && "message" in payload && typeof payload.message === "string") {
       errorMsg = payload.message;
     }
     throw new Error(errorMsg);
   }
 
-  const apiRes = payload as CurrentUserApiResponse;
-  if (!apiRes || !apiRes.responseData) {
-    throw new Error("Invalid response format received from user profile endpoint.");
+  const apiRes = payload as UserListApiResponse;
+  if (!apiRes || !Array.isArray(apiRes.responseData)) {
+    throw new Error("Invalid response format received from users endpoint.");
   }
 
   return apiRes.responseData;

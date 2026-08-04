@@ -10,6 +10,7 @@ import {
   Activity,
   BarChart3,
   UserCog,
+  UserPlus,
   Settings,
   LogOut,
   ChevronDown,
@@ -23,7 +24,7 @@ import {
   Building2,
 } from "lucide-react";
 import { clearAuthSession, getAuthSession, logoutFromPortal, subscribeAuthSession } from "@/lib/auth";
-import { UserProfileModal } from "@/components/UserProfileModal";
+import { UserProfileModal } from "@/app/users/UserProfileModal";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -68,6 +69,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
       setOpenAccordion("requester");
     } else if (path.includes("/dashboard/api-management")) {
       setOpenAccordion("api");
+    } else if (path.includes("/users")) {
+      setOpenAccordion("users");
     } else {
       setOpenAccordion(null);
     }
@@ -118,6 +121,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
       "loan-document": "Loan Document API",
       "bank-branch-locator": "Bank Branch Locator API",
       "overview": "Overview",
+      "users": "Users",
+      "create": "Create User",
     };
 
     const parts = pathname.split("/").filter(Boolean);
@@ -207,20 +212,20 @@ export default function DashboardLayout({ children }: LayoutProps) {
               </div>
               <ChevronDown size={16} className={`transition-transform duration-200 ${isRequesterOpen ? "rotate-180" : ""}`} />
             </button>
-            
-            {/* Requester Submenu */}
+
+            {/* Submenu Items for Requester */}
             <div
               className={`mt-1 pl-3.5 space-y-0.5 transition-all duration-300 overflow-hidden ${
-                isRequesterOpen ? "max-h-[250px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+                isRequesterOpen ? "max-h-[310px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
               }`}
             >
               {[
-                { label: "Create Request", path: "/dashboard/requester/create-request", icon: FilePlus2 },
-                { label: "Request List", path: "/dashboard/requester/request-list", icon: ClipboardList },
                 { label: "Entity List", path: "/dashboard/requester/entity-list", icon: Building2 },
-                // { label: "Shared Link Status", path: "/dashboard/requester/shared-link-status", icon: Link2 },
-                // { label: "Consent History", path: "/dashboard/requester/consent-history", icon: History },
-                // { label: "Document List", path: "/dashboard/requester/document-list", icon: FileStack },
+                { label: "Request List", path: "/dashboard/requester/request-list", icon: ClipboardList },
+                { label: "Consent Details", path: "/dashboard/requester/consent-details", icon: PanelTop },
+                { label: "Consent History", path: "/dashboard/requester/consent-history", icon: Boxes },
+                { label: "Shared Link Status", path: "/dashboard/requester/shared-link-status", icon: Activity },
+                { label: "Document List", path: "/dashboard/requester/document-list", icon: FileText },
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = isActiveSub(item.path);
@@ -236,14 +241,14 @@ export default function DashboardLayout({ children }: LayoutProps) {
                     }`}
                   >
                     <Icon size={14} aria-hidden="true" className="shrink-0" />
-                    <span>{item.label}</span>
+                    <span className="whitespace-nowrap">{item.label}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* 3. Issuer Menu (Accordion) */}
+          {/* 3. Issuer */}
           <div>
             <button
               onClick={() => toggleAccordion("issuer")}
@@ -289,11 +294,6 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 { label: "Overview", path: "/dashboard/api-management/overview", icon: PanelTop },
                 { label: "API Catalog", path: "/dashboard/api-management/api-catalog", icon: Boxes },
                 { label: "Documentation", path: "/dashboard/api-management/documentation", icon: FileText },
-                // { label: "Subscriptions", path: "/dashboard/api-management/subscriptions", icon: Link2 },
-                // { label: "Vendor/Client Onboarding", path: "/dashboard/api-management/vendor-onboarding", icon: UserRoundPlus },
-                // { label: "API Analytics", path: "/dashboard/api-management/analytics", icon: ChartNoAxesCombined },
-                // { label: "API Logs", path: "/dashboard/api-management/logs", icon: ScrollText },
-                // { label: "API Keys", path: "/dashboard/api-management/keys", icon: KeyRound },
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = isActiveSub(item.path);
@@ -337,18 +337,22 @@ export default function DashboardLayout({ children }: LayoutProps) {
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
             >
               <div className="flex items-center gap-3">
-                <BarChart3 size={17} className="shrink-0" />
+                <BarChart3 size={17} className="shrink-[#0] shrink-0" />
                 <span>Reports</span>
               </div>
               <ChevronDown size={16} className={`transition-transform duration-200 ${isReportsOpen ? "rotate-180" : ""}`} />
             </button>
           </div>
 
-          {/* 7. Users & Roles */}
+          {/* 7. Users & Roles (With Submenus: Users, Create User) */}
           <div>
             <button
               onClick={() => toggleAccordion("users")}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
+              className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${
+                pathname.includes("/users")
+                  ? "text-white bg-white/5"
+                  : "text-white/70 hover:bg-white/5 hover:text-white"
+              }`}
             >
               <div className="flex items-center gap-3">
                 <UserCog size={17} className="shrink-0" />
@@ -356,6 +360,36 @@ export default function DashboardLayout({ children }: LayoutProps) {
               </div>
               <ChevronDown size={16} className={`transition-transform duration-200 ${isUsersOpen ? "rotate-180" : ""}`} />
             </button>
+
+            {/* Submenu Items for Users & Roles */}
+            <div
+              className={`mt-1 pl-3.5 space-y-0.5 transition-all duration-300 overflow-hidden ${
+                isUsersOpen ? "max-h-[150px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+              }`}
+            >
+              {[
+                { label: "Users", path: "/users", icon: Users },
+                { label: "Create User", path: "/users/create", icon: UserPlus },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isActive = isActiveSub(item.path);
+
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] font-semibold transition-all duration-150 text-left cursor-pointer ${
+                      isActive
+                        ? "bg-[#0072ad] text-white shadow-[0_3px_10px_rgba(0,114,173,0.2)]"
+                        : "text-white/60 hover:bg-white/4 hover:text-white"
+                    }`}
+                  >
+                    <Icon size={14} aria-hidden="true" className="shrink-0" />
+                    <span className="whitespace-nowrap">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* 8. Settings */}
@@ -380,98 +414,81 @@ export default function DashboardLayout({ children }: LayoutProps) {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className={`flex items-center gap-3 w-full px-3 py-1.5 rounded-[9px] text-[13px] font-bold text-white/80 hover:bg-white/5 hover:text-red-300 transition-colors duration-150 mb-[116px] ${
-              isLoggingOut ? "cursor-not-allowed opacity-70" : "cursor-pointer"
-            }`}
+            className="flex items-center justify-center gap-2 w-full py-2 text-[12.5px] font-extrabold text-[#fecaca] hover:text-white hover:bg-red-500/20 rounded-[8px] transition-colors cursor-pointer mb-2 disabled:opacity-50"
           >
-            <LogOut size={17} className="shrink-0" />
+            <LogOut size={15} />
             <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
           </button>
 
-          <span className="self-start px-1 text-[10px] text-white/70 font-medium leading-[1.45] flex flex-col justify-center items-center">
-            &copy; {COPYRIGHT_YEAR} LoanTap Financial Technologies.
-            <span>All rights reserved.</span>
-          </span>
+          {/* Copyright Text */}
+          <div className="text-[10px] text-white/40 text-center font-medium leading-normal mb-1">
+            Copyright &copy; {COPYRIGHT_YEAR} Bank of Maharashtra. All rights reserved.
+          </div>
         </div>
+
       </aside>
 
-      {/* ══════════════ MAIN WORKSPACE ══════════════ */}
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+      {/* ══════════════ MAIN CONTENT WRAPPER ══════════════ */}
+      <div className="flex flex-col flex-1 h-full min-w-0 overflow-hidden">
         
-        {/* Top Navbar */}
-        <header className="h-[70px] bg-white border-b border-[#e3e4ee] px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
+        {/* Top Header Bar */}
+        <header className="h-[60px] bg-white border-b border-[#e3e4ee] px-5 flex items-center justify-between shrink-0 z-10 shadow-xs">
           
-          {/* Breadcrumbs */}
-          <div className="flex flex-col">
-            <h1 className="text-[17px] font-extrabold text-text-primary tracking-tight leading-tight">
-              Mahabank Digital Document Portal
-            </h1>
-            <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-semibold text-text-mid">
-              {breadcrumbs.map((crumb, idx) => (
-                <React.Fragment key={crumb.path}>
-                  {idx > 0 && <ChevronRight size={10} className="text-text-mid/50" />}
-                  {crumb.isLast ? (
-                    <span className="text-bom-blue-mid">{crumb.label}</span>
-                  ) : (
-                    <button
-                      onClick={() => handleNavigation(crumb.path)}
-                      className="hover:text-text-primary transition-colors cursor-pointer"
-                    >
-                      {crumb.label}
-                    </button>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
+          {/* Breadcrumb Navigation */}
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[12px] font-bold text-[#5e6272]">
+            <span className="text-[#0089CF] font-extrabold">Portal</span>
+            {breadcrumbs.map((crumb) => (
+              <React.Fragment key={crumb.path}>
+                <ChevronRight size={13} className="text-[#9094a8]" />
+                <span className={crumb.isLast ? "text-[#10142d] font-extrabold" : "text-[#5e6272]"}>
+                  {crumb.label}
+                </span>
+              </React.Fragment>
+            ))}
+          </nav>
 
-          {/* Right Section */}
-          <div className="flex items-center gap-5">
-            
+          {/* Header Right Actions */}
+          <div className="flex items-center gap-3">
             {/* Notification Bell */}
-            <button className="relative p-2 rounded-full border border-[#e3e4ee] hover:bg-neutral-50 text-[#5e6272] transition-colors shrink-0 cursor-pointer">
+            <button
+              className="relative p-2 rounded-full hover:bg-neutral-100 text-[#5e6272] transition-colors cursor-pointer"
+              title="Notifications"
+            >
               <Bell size={18} />
-              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-red-500 text-white text-[9.5px] font-extrabold flex items-center justify-center rounded-full border border-white">
-                8
-              </span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
             </button>
 
-            {/* Vertical Divider */}
-            <div className="w-[1.5px] h-[34px] bg-neutral-200 shrink-0" />
+            <div className="h-5 w-[1px] bg-[#e3e4ee]" />
 
-            {/* Profile Dropdown */}
+            {/* Profile Avatar Pill */}
             <button
               onClick={() => setIsProfileModalOpen(true)}
-              className="flex items-center gap-2.5 text-left border-0 bg-transparent p-0 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
-              title="Click to view full user profile"
+              className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-neutral-100 transition-colors cursor-pointer border border-transparent hover:border-[#e3e4ee]"
+              title="User Account Profile"
             >
-              <div className="w-[36px] h-[36px] rounded-full bg-neutral-100 flex items-center justify-center border border-[#e3e4ee] text-bom-blue-mid font-extrabold text-[14px]">
+              <div className="w-8 h-8 rounded-full bg-[#0089CF] text-white font-extrabold text-[12.5px] flex items-center justify-center shadow-xs">
                 {userInitials}
               </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-text-mid uppercase leading-none mb-0.5">Welcome,</span>
-                <span className="text-[13px] font-extrabold text-text-primary leading-none">{userDisplayName}</span>
+              <div className="flex flex-col text-left leading-tight hidden sm:flex">
+                <span className="text-[12.5px] font-extrabold text-[#10142d] truncate max-w-[140px]">
+                  {userDisplayName}
+                </span>
+                <span className="text-[10px] font-bold text-[#0089CF]">
+                  {authSession?.branch?.branchCode ? `Branch: ${authSession.branch.branchCode}` : "System Admin"}
+                </span>
               </div>
-              <ChevronDown size={14} className="text-text-mid ml-1" />
+              <ChevronDown size={14} className="text-[#5e6272] hidden sm:block" />
             </button>
-
-            {/* Entity Locker Brand Logo */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/assets/entityLocker-logo.svg"
-              alt="Entity Locker"
-              className="h-[32px] w-auto block object-contain shrink-0"
-            />
           </div>
         </header>
 
-        {/* Page Content Scroll Area */}
-        <main className="flex-1 overflow-y-auto bg-[#f4f7fe]">
+        {/* Main Content Workspace Area */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-5 bg-[#f4f7fe]">
           {children}
         </main>
       </div>
 
-      {/* User Profile Modal */}
+      {/* User Account Profile Modal Dialog */}
       <UserProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}

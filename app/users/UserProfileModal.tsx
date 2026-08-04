@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   X,
-  User,
   Mail,
   Building2,
   Shield,
@@ -17,8 +16,16 @@ import {
   Calendar,
   Layers,
   UserCheck,
+  ChevronDown,
+  ChevronUp,
+  Lock,
 } from "lucide-react";
-import { fetchCurrentUserProfile, CurrentUserProfile } from "@/services/user.service";
+import {
+  fetchCurrentUserProfile,
+  changePassword,
+  CurrentUserProfile,
+  ChangePasswordApiError,
+} from "@/services/users/userDetails";
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -53,6 +60,17 @@ export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileMo
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Change Password Form States
+  const [showChangePassword, setShowChangePassword] = useState<boolean>(false);
+  const [currentPassword, setCurrentPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+
+  const [changingPassword, setChangingPassword] = useState<boolean>(false);
+  const [changePassSuccess, setChangePassSuccess] = useState<string | null>(null);
+  const [changePassError, setChangePassError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
   const loadData = useCallback(async () => {
     if (!accessToken) return;
     setLoading(true);
@@ -71,19 +89,90 @@ export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileMo
   useEffect(() => {
     if (isOpen) {
       loadData();
+      setShowChangePassword(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setChangePassSuccess(null);
+      setChangePassError(null);
+      setFieldErrors({});
     }
   }, [isOpen, loadData]);
 
   // Handle ESC key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
+      if (e.key === "Escape" && isOpen && !changingPassword) {
         onClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, changingPassword]);
+
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangePassError(null);
+    setChangePassSuccess(null);
+    setFieldErrors({});
+
+    if (!currentPassword) {
+      setFieldErrors({ current_password: ["The current password field is required."] });
+      return;
+    }
+    if (!newPassword) {
+      setFieldErrors({ password: ["The password field is required."] });
+      return;
+    }
+    if (newPassword.length < 8) {
+      setFieldErrors({ password: ["The password field must be at least 8 characters."] });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setFieldErrors({ password: ["The password confirmation does not match."] });
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const msg = await changePassword(
+        {
+          current_password: currentPassword,
+          password: newPassword,
+          password_confirmation: confirmPassword,
+        },
+        accessToken
+      );
+
+      setChangePassSuccess(msg);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+      // Auto hide form after 2 seconds
+      setTimeout(() => {
+        setShowChangePassword(false);
+        setChangePassSuccess(null);
+      }, 2000);
+    } catch (err: unknown) {
+      if (err instanceof ChangePasswordApiError) {
+        setChangePassError(err.message);
+        if (err.errors) {
+          setFieldErrors(err.errors);
+        }
+      } else {
+        const msg = err instanceof Error ? err.message : "Failed to change password.";
+        setChangePassError(msg);
+      }
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const getFieldError = (fieldName: string): string | undefined => {
+    return fieldErrors[fieldName]?.[0];
+  };
 
   if (!isOpen) return null;
 
@@ -109,7 +198,8 @@ export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileMo
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-white/15 text-white/80 hover:text-white transition-colors cursor-pointer"
+            disabled={changingPassword}
+            className="p-1 rounded-full hover:bg-white/15 text-white/80 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
             title="Close"
           >
             <X size={18} />
@@ -149,11 +239,10 @@ export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileMo
                   <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                     <h3 className="text-[15.5px] font-extrabold text-[#10142d] tracking-tight truncate">{profile.name || "N/A"}</h3>
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold border ${
-                        profile.status === "ACTIVE"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                          : "bg-amber-50 text-amber-700 border-amber-200"
-                      }`}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold border ${profile.status === "ACTIVE"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-amber-50 text-amber-700 border-amber-200"
+                        }`}
                     >
                       <CheckCircle2 size={11} />
                       {profile.status || "ACTIVE"}
@@ -269,6 +358,149 @@ export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileMo
                   </div>
                 </div>
               </div>
+
+              {/* Section 4: Change Password Expandable Section */}
+              <div className="pt-1">
+                <div className="border border-[#e3e4ee] rounded-xl overflow-hidden bg-neutral-50/50">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowChangePassword(!showChangePassword);
+                      setChangePassSuccess(null);
+                      setChangePassError(null);
+                      setFieldErrors({});
+                    }}
+                    className="w-full px-4 py-2.5 bg-white hover:bg-neutral-50 flex items-center justify-between transition-colors cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-2 text-[12.5px] font-bold text-[#10142d]">
+                      <Lock size={15} className="text-[#0089CF]" />
+                      <span>Update Account Password</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[11.5px] font-extrabold text-[#0089CF]">
+                      <span>{showChangePassword ? "Hide Form" : "Change Password"}</span>
+                      {showChangePassword ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </div>
+                  </button>
+
+                  {showChangePassword && (
+                    <form onSubmit={handleChangePasswordSubmit} className="p-4 border-t border-[#e3e4ee] bg-white space-y-3 text-[12.5px]">
+                      {changePassSuccess && (
+                        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-[12px] font-bold flex items-center gap-2">
+                          <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                          <span>{changePassSuccess}</span>
+                        </div>
+                      )}
+
+                      {changePassError && (
+                        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-[12px] font-semibold flex items-center gap-2">
+                          <AlertCircle size={16} className="text-red-600 shrink-0" />
+                          <span>{changePassError}</span>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {/* Current Password */}
+                        <div>
+                          <label className="block mb-1 font-bold text-[#10142d]">
+                            Current Password <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            placeholder="Enter current password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            disabled={changingPassword}
+                            className={`w-full px-3 py-2 border rounded-lg text-[13px] font-semibold outline-none transition-all ${
+                              getFieldError("current_password")
+                                ? "border-red-500 bg-red-50/20 focus:border-red-600"
+                                : "border-[#e3e4ee] focus:border-[#0089CF]"
+                            }`}
+                          />
+                          {getFieldError("current_password") && (
+                            <p className="mt-1 text-[11px] font-bold text-red-600">
+                              {getFieldError("current_password")}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* New Password */}
+                        <div>
+                          <label className="block mb-1 font-bold text-[#10142d]">
+                            New Password <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            placeholder="Min 8 characters"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            disabled={changingPassword}
+                            className={`w-full px-3 py-2 border rounded-lg text-[13px] font-semibold outline-none transition-all ${
+                              getFieldError("password")
+                                ? "border-red-500 bg-red-50/20 focus:border-red-600"
+                                : "border-[#e3e4ee] focus:border-[#0089CF]"
+                            }`}
+                          />
+                          {getFieldError("password") && (
+                            <p className="mt-1 text-[11px] font-bold text-red-600">
+                              {getFieldError("password")}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Confirm New Password */}
+                        <div>
+                          <label className="block mb-1 font-bold text-[#10142d]">
+                            Confirm New Password <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            placeholder="Re-enter new password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            disabled={changingPassword}
+                            className="w-full px-3 py-2 border border-[#e3e4ee] rounded-lg text-[13px] font-semibold outline-none focus:border-[#0089CF] transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowChangePassword(false);
+                            setCurrentPassword("");
+                            setNewPassword("");
+                            setConfirmPassword("");
+                            setChangePassError(null);
+                            setFieldErrors({});
+                          }}
+                          disabled={changingPassword}
+                          className="px-3.5 py-1.5 rounded-lg bg-neutral-200 hover:bg-neutral-300 text-[#10142d] font-bold cursor-pointer transition-colors disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={changingPassword}
+                          className="px-4 py-1.5 rounded-lg bg-[#0089CF] hover:bg-[#0072ad] text-white font-extrabold cursor-pointer transition-all shadow-xs flex items-center gap-1.5 disabled:opacity-50"
+                        >
+                          {changingPassword ? (
+                            <>
+                              <RefreshCw size={13} className="animate-spin" />
+                              <span>Updating...</span>
+                            </>
+                          ) : (
+                            <span>Change Password</span>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              </div>
             </>
           ) : null}
         </div>
@@ -277,7 +509,7 @@ export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileMo
         <div className="bg-neutral-50 px-5 py-2.5 border-t border-[#e3e4ee] flex items-center justify-between shrink-0">
           <button
             onClick={loadData}
-            disabled={loading}
+            disabled={loading || changingPassword}
             className="flex items-center gap-1.5 text-[11.5px] font-bold text-[#0089CF] hover:text-[#0072ad] disabled:opacity-50 transition-colors cursor-pointer"
           >
             <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
@@ -285,7 +517,8 @@ export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileMo
           </button>
           <button
             onClick={onClose}
-            className="px-3.5 py-1.5 rounded-lg bg-neutral-200 hover:bg-neutral-300 text-[#10142d] text-[12px] font-bold transition-colors cursor-pointer"
+            disabled={changingPassword}
+            className="px-3.5 py-1.5 rounded-lg bg-neutral-200 hover:bg-neutral-300 text-[#10142d] text-[12px] font-bold transition-colors cursor-pointer disabled:opacity-50"
           >
             Close
           </button>
