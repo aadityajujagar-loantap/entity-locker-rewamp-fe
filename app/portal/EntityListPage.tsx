@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Building2,
   Search,
@@ -21,9 +22,11 @@ import {
   Plus,
   PlusCircle,
   SearchX,
+  Link2,
 } from "lucide-react";
 import { getAuthSession } from "@/lib/auth";
-import { fetchEntityList, EntityItem } from "@/services/EntityListPage";
+import { fetchEntityList, fetchEntityDetails, EntityItem } from "@/services/EntityListPage";
+import { RegisterEntityModal } from "@/components/RegisterEntity";
 
 const PAGE_SIZE = 15;
 
@@ -43,8 +46,12 @@ function formatDate(dateStr: string | null | undefined): string {
 }
 
 export default function EntityListPage() {
+  const router = useRouter();
+
   const [entities, setEntities] = useState<EntityItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [detailsLoading, setDetailsLoading] = useState<boolean>(false);
+  const [navigatingConsent, setNavigatingConsent] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Search, Filter & Pagination states
@@ -56,12 +63,23 @@ export default function EntityListPage() {
 
   // Registration modal state
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState<boolean>(false);
-  const [regName, setRegName] = useState<string>("");
-  const [regType, setRegType] = useState<string>("ORGANIZATION");
-  const [regEmail, setRegEmail] = useState<string>("");
-  const [regMobile, setRegMobile] = useState<string>("");
-  const [isRegistering, setIsRegistering] = useState<boolean>(false);
-  const [regSuccessMsg, setRegSuccessMsg] = useState<string | null>(null);
+
+  // Select entity & fetch full details (including consent_details) using entity_id string
+  const handleSelectEntity = useCallback(async (entity: EntityItem) => {
+    setSelectedEntity(entity);
+    const session = getAuthSession();
+    if (!session || !session.accessToken || !entity.entity_id) return;
+
+    try {
+      setDetailsLoading(true);
+      const fullDetails = await fetchEntityDetails(entity.entity_id, session.accessToken);
+      setSelectedEntity(fullDetails);
+    } catch (err: unknown) {
+      console.error("Failed to fetch entity details:", err);
+    } finally {
+      setDetailsLoading(false);
+    }
+  }, []);
 
   // Load Entities from API
   const loadEntities = useCallback(async () => {
@@ -75,7 +93,7 @@ export default function EntityListPage() {
       const data = await fetchEntityList(session.accessToken);
       setEntities(data);
       if (data.length > 0) {
-        setSelectedEntity(data[0]);
+        handleSelectEntity(data[0]);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to fetch entity list.";
@@ -83,7 +101,7 @@ export default function EntityListPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [handleSelectEntity]);
 
   useEffect(() => {
     loadEntities();
@@ -128,46 +146,14 @@ export default function EntityListPage() {
   const organizationCount = entities.filter((e) => e.entity_type === "ORGANIZATION").length;
   const verifiedCount = entities.filter((e) => e.verified_by !== null).length;
 
-  const handleOpenRegisterModal = () => {
-    setRegName(searchQuery.trim());
-    setRegEmail("");
-    setRegMobile("");
-    setRegSuccessMsg(null);
-    setIsRegisterModalOpen(true);
+  const handleEntityCreatedSuccess = (newEntity: EntityItem) => {
+    setEntities((prev) => [newEntity, ...prev]);
+    handleSelectEntity(newEntity);
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!regName.trim()) return;
-
-    setIsRegistering(true);
-    setTimeout(() => {
-      const newEntity: EntityItem = {
-        id: Date.now(),
-        entity_id: `ENT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-        entity_name: regName.trim(),
-        entity_type: regType,
-        status: "ACTIVE",
-        entitylockerid: null,
-        doi: null,
-        entity_email: regEmail.trim() || null,
-        entity_mobile: regMobile.trim() || null,
-        verified_by: "System Admin",
-        entity_user: null,
-        entity_users: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      setEntities((prev) => [newEntity, ...prev]);
-      setSelectedEntity(newEntity);
-      setIsRegistering(false);
-      setRegSuccessMsg(`Entity "${newEntity.entity_name}" registered successfully!`);
-      setTimeout(() => {
-        setIsRegisterModalOpen(false);
-        setRegSuccessMsg(null);
-      }, 1200);
-    }, 600);
+  const handleGenerateConsentUrlClick = (entityIdStr: string) => {
+    setNavigatingConsent(true);
+    router.push(`/dashboard/requester/create-request?entity_id=${entityIdStr}`);
   };
 
   const getStatusBadge = (status: string) => {
@@ -181,6 +167,21 @@ export default function EntityListPage() {
         return "bg-red-50 text-red-700 border border-red-200";
       default:
         return "bg-neutral-100 text-neutral-800 border border-neutral-200";
+    }
+  };
+
+  const getConsentStatusBadge = (status?: string | null) => {
+    switch (status?.toLowerCase()) {
+      case "authorized":
+        return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+      case "pending":
+        return "bg-amber-50 text-amber-700 border border-amber-200";
+      case "failed":
+        return "bg-red-50 text-red-700 border border-red-200";
+      case "expired":
+        return "bg-neutral-100 text-neutral-600 border border-neutral-200";
+      default:
+        return "bg-neutral-100 text-neutral-500 border border-neutral-200";
     }
   };
 
@@ -200,7 +201,7 @@ export default function EntityListPage() {
         <div className="flex items-center gap-2">
           {/* Register Entity Primary Button */}
           <button
-            onClick={handleOpenRegisterModal}
+            onClick={() => setIsRegisterModalOpen(true)}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#0089CF] hover:bg-[#0072ad] text-white text-[12.5px] font-extrabold transition-all shadow-xs cursor-pointer"
           >
             <Plus size={15} />
@@ -271,7 +272,7 @@ export default function EntityListPage() {
             <div className="flex flex-1 min-w-0 flex-wrap gap-2 items-center">
               
               {/* Search Bar */}
-              <div className="relative flex min-w-[240px] flex-1 items-center h-[36px] border border-[#e3e4ee] rounded-[9px] focus-within:border-[#0089CF] bg-white">
+              <div className="relative flex min-[#240px] flex-1 items-center h-[36px] border border-[#e3e4ee] rounded-[9px] focus-within:border-[#0089CF] bg-white">
                 <Search size={14} className="absolute left-3 text-[#5e6272]" />
                 <input
                   type="text"
@@ -309,7 +310,7 @@ export default function EntityListPage() {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={handleOpenRegisterModal}
+                onClick={() => setIsRegisterModalOpen(true)}
                 className="flex items-center gap-1.5 px-3 h-[36px] rounded-[9px] bg-[#0089CF] hover:bg-[#0072ad] text-white text-[12px] font-extrabold cursor-pointer transition-all shadow-2xs"
               >
                 <Plus size={14} />
@@ -364,7 +365,7 @@ export default function EntityListPage() {
                   {paginatedEntities.map((item) => (
                     <tr
                       key={item.id}
-                      onClick={() => setSelectedEntity(item)}
+                      onClick={() => handleSelectEntity(item)}
                       className={`text-[11.5px] font-semibold text-[#10142d] hover:bg-neutral-50 transition-colors cursor-pointer select-none whitespace-nowrap ${
                         selectedEntity?.id === item.id ? "bg-blue-50/50" : ""
                       }`}
@@ -386,7 +387,7 @@ export default function EntityListPage() {
                       <td className="py-2.5 px-3 text-[#5e6272]">{formatDate(item.created_at)}</td>
                       <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => setSelectedEntity(item)}
+                          onClick={() => handleSelectEntity(item)}
                           className="p-1.5 rounded-md hover:bg-neutral-100 text-[#5e6272] hover:text-[#0089CF] transition-colors cursor-pointer inline-flex items-center justify-center"
                           title="View Details"
                         >
@@ -411,7 +412,7 @@ export default function EntityListPage() {
                             </p>
                           </div>
                           <button
-                            onClick={handleOpenRegisterModal}
+                            onClick={() => setIsRegisterModalOpen(true)}
                             className="mt-1 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#0089CF] hover:bg-[#0072ad] text-white text-[12px] font-extrabold transition-colors cursor-pointer shadow-xs"
                           >
                             <PlusCircle size={14} />
@@ -489,6 +490,7 @@ export default function EntityListPage() {
                   <h4 className="text-[14px] font-extrabold text-[#10142d] tracking-tight truncate">
                     {selectedEntity.entity_name}
                   </h4>
+                  {detailsLoading && <RefreshCw size={12} className="animate-spin text-[#0089CF]" />}
                 </div>
                 <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-[5px] ${getStatusBadge(selectedEntity.status)}`}>
                   {selectedEntity.status}
@@ -497,76 +499,156 @@ export default function EntityListPage() {
 
               <hr className="border-0 border-t border-neutral-100 -mx-4" />
 
-              {/* Block 1: Identity Info */}
-              <div className="space-y-2.5">
-                <h5 className="text-[11px] font-extrabold text-[#5e6272] uppercase tracking-wide flex items-center gap-1.5">
-                  <Hash size={13} className="text-[#0089CF]" /> Identity Metadata
-                </h5>
-                <div className="space-y-1.5 text-[12px]">
-                  <div className="flex justify-between">
-                    <span className="text-[#5e6272] font-semibold">Entity ID</span>
-                    <span className="font-extrabold text-[#0089CF]">{selectedEntity.entity_id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#5e6272] font-semibold">Entity Type</span>
-                    <span className="font-bold text-[#10142d]">{selectedEntity.entity_type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#5e6272] font-semibold">Locker ID</span>
-                    <span className="font-bold text-[#10142d]">{selectedEntity.entitylockerid || "N/A"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#5e6272] font-semibold">DOI</span>
-                    <span className="font-bold text-[#10142d]">{selectedEntity.doi || "N/A"}</span>
-                  </div>
+              {/* Prominent Loader when fetching details */}
+              {detailsLoading ? (
+                <div className="py-10 flex flex-col items-center justify-center space-y-3 bg-[#0089CF]/5 rounded-xl border border-[#0089CF]/20 text-[#0089CF] animate-pulse">
+                  <RefreshCw size={26} className="animate-spin" />
+                  <span className="text-[12px] font-extrabold">Loading Entity &amp; Consent Details...</span>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* Block 1: Identity Info */}
+                  <div className="space-y-2.5">
+                    <h5 className="text-[11px] font-extrabold text-[#5e6272] uppercase tracking-wide flex items-center gap-1.5">
+                      <Hash size={13} className="text-[#0089CF]" /> Identity Metadata
+                    </h5>
+                    <div className="space-y-1.5 text-[12px]">
+                      <div className="flex justify-between">
+                        <span className="text-[#5e6272] font-semibold">Entity ID</span>
+                        <span className="font-extrabold text-[#0089CF]">{selectedEntity.entity_id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#5e6272] font-semibold">Entity Type</span>
+                        <span className="font-bold text-[#10142d]">{selectedEntity.entity_type}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#5e6272] font-semibold">Locker ID</span>
+                        <span className="font-bold text-[#10142d]">{selectedEntity.entitylockerid || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#5e6272] font-semibold">DOI</span>
+                        <span className="font-bold text-[#10142d]">{selectedEntity.doi || "N/A"}</span>
+                      </div>
+                    </div>
+                  </div>
 
-              <hr className="border-0 border-t border-neutral-100 -mx-4" />
+                  <hr className="border-0 border-t border-neutral-100 -mx-4" />
 
-              {/* Block 2: Contact Information */}
-              <div className="space-y-2.5">
-                <h5 className="text-[11px] font-extrabold text-[#5e6272] uppercase tracking-wide flex items-center gap-1.5">
-                  <Mail size={13} className="text-[#0089CF]" /> Contact Information
-                </h5>
-                <div className="space-y-1.5 text-[12px]">
-                  <div className="flex justify-between">
-                    <span className="text-[#5e6272] font-semibold flex items-center gap-1">
-                      <Mail size={11} /> Email
-                    </span>
-                    <span className="font-bold text-[#10142d] truncate max-w-[170px]">{selectedEntity.entity_email || "N/A"}</span>
+                  {/* Block 2: Contact Information */}
+                  <div className="space-y-2.5">
+                    <h5 className="text-[11px] font-extrabold text-[#5e6272] uppercase tracking-wide flex items-center gap-1.5">
+                      <Mail size={13} className="text-[#0089CF]" /> Contact Information
+                    </h5>
+                    <div className="space-y-1.5 text-[12px]">
+                      <div className="flex justify-between">
+                        <span className="text-[#5e6272] font-semibold flex items-center gap-1">
+                          <Mail size={11} /> Email
+                        </span>
+                        <span className="font-bold text-[#10142d] truncate max-w-[170px]">{selectedEntity.entity_email || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#5e6272] font-semibold flex items-center gap-1">
+                          <Phone size={11} /> Mobile
+                        </span>
+                        <span className="font-bold text-[#10142d]">{selectedEntity.entity_mobile || "N/A"}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#5e6272] font-semibold flex items-center gap-1">
-                      <Phone size={11} /> Mobile
-                    </span>
-                    <span className="font-bold text-[#10142d]">{selectedEntity.entity_mobile || "N/A"}</span>
-                  </div>
-                </div>
-              </div>
 
-              <hr className="border-0 border-t border-neutral-100 -mx-4" />
+                  <hr className="border-0 border-t border-neutral-100 -mx-4" />
 
-              {/* Block 3: Verification & Dates */}
-              <div className="space-y-2.5">
-                <h5 className="text-[11px] font-extrabold text-[#5e6272] uppercase tracking-wide flex items-center gap-1.5">
-                  <Calendar size={13} className="text-[#0089CF]" /> Timestamps &amp; Status
-                </h5>
-                <div className="space-y-1.5 text-[12px]">
-                  <div className="flex justify-between">
-                    <span className="text-[#5e6272] font-semibold">Verified By</span>
-                    <span className="font-bold text-[#10142d]">{selectedEntity.verified_by || "Not Verified"}</span>
+                  {/* Block 3: Consent Status & Conditional Action Buttons */}
+                  {(() => {
+                    const rawConsentStatus =
+                      selectedEntity.consent_details?.status || selectedEntity.consent_status;
+                    const isExpired =
+                      selectedEntity.consent_details?.is_consent_expired ||
+                      rawConsentStatus?.toLowerCase() === "expired";
+                    const displayConsentStatus = isExpired ? "expired" : (rawConsentStatus || null);
+
+                    return (
+                      <div className="space-y-2.5">
+                        <h5 className="text-[11px] font-extrabold text-[#5e6272] uppercase tracking-wide flex items-center gap-1.5">
+                          <ShieldCheck size={13} className="text-[#0089CF]" /> Consent Authorization
+                        </h5>
+                        <div className="space-y-2 text-[12px]">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#5e6272] font-semibold">Consent Status</span>
+                            <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-[5px] uppercase ${getConsentStatusBadge(displayConsentStatus)}`}>
+                              {displayConsentStatus || "Not Generated"}
+                            </span>
+                          </div>
+
+                          {/* Conditional Action Buttons */}
+                          {(!displayConsentStatus || displayConsentStatus.toLowerCase() === "expired") ? (
+                            <div className="pt-1">
+                              <button
+                                onClick={() => handleGenerateConsentUrlClick(selectedEntity.entity_id)}
+                                disabled={navigatingConsent}
+                                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#0089CF] hover:bg-[#0072ad] text-white text-[12px] font-extrabold transition-all shadow-xs cursor-pointer disabled:opacity-75"
+                              >
+                                {navigatingConsent ? (
+                                  <>
+                                    <RefreshCw size={14} className="animate-spin" />
+                                    <span>Preparing Consent Request...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Link2 size={14} />
+                                    <span>Generate Consent URL</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="pt-1">
+                              <button
+                                onClick={() => router.push(`/dashboard/requester/consent-details?entity_id=${selectedEntity.entity_id}`)}
+                                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-[#0089CF] hover:bg-[#0072ad] text-white text-[12px] font-extrabold transition-all shadow-xs cursor-pointer"
+                              >
+                                <Eye size={14} />
+                                <span>View Consent Details</span>
+                              </button>
+                            </div>
+                          )}
+
+                          {(selectedEntity.consent_details?.authorization_url || selectedEntity.consent_url) && (
+                            <div className="mt-1 p-2 rounded-lg bg-neutral-50 border border-neutral-200">
+                              <div className="text-[10px] font-semibold text-[#5e6272]">Active Consent Link</div>
+                              <div className="text-[11px] font-mono text-[#0089CF] truncate mt-0.5">
+                                {selectedEntity.consent_details?.authorization_url || selectedEntity.consent_url}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <hr className="border-0 border-t border-neutral-100 -mx-4" />
+
+                  {/* Block 4: Timestamps & Verification */}
+                  <div className="space-y-2.5">
+                    <h5 className="text-[11px] font-extrabold text-[#5e6272] uppercase tracking-wide flex items-center gap-1.5">
+                      <Calendar size={13} className="text-[#0089CF]" /> Timestamps &amp; Status
+                    </h5>
+                    <div className="space-y-1.5 text-[12px]">
+                      <div className="flex justify-between">
+                        <span className="text-[#5e6272] font-semibold">Verified By</span>
+                        <span className="font-bold text-[#10142d]">{selectedEntity.verified_by || "Not Verified"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#5e6272] font-semibold">Created At</span>
+                        <span className="font-bold text-[#10142d]">{formatDate(selectedEntity.created_at)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#5e6272] font-semibold">Updated At</span>
+                        <span className="font-bold text-[#10142d]">{formatDate(selectedEntity.updated_at)}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#5e6272] font-semibold">Created At</span>
-                    <span className="font-bold text-[#10142d]">{formatDate(selectedEntity.created_at)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#5e6272] font-semibold">Updated At</span>
-                    <span className="font-bold text-[#10142d]">{formatDate(selectedEntity.updated_at)}</span>
-                  </div>
-                </div>
-              </div>
+                </>
+              )}
 
             </div>
           </div>
@@ -574,107 +656,13 @@ export default function EntityListPage() {
 
       </div>
 
-      {/* Register Entity Modal */}
-      {isRegisterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-[#e3e4ee]">
-            {/* Header */}
-            <div className="bg-[#0089CF] px-5 py-3 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <PlusCircle size={18} />
-                <h3 className="text-[15px] font-bold">Register New Entity</h3>
-              </div>
-              <button
-                onClick={() => setIsRegisterModalOpen(false)}
-                className="p-1 rounded-full hover:bg-white/15 text-white/80 hover:text-white cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Body Form */}
-            <form onSubmit={handleRegisterSubmit} className="p-5 space-y-3 text-[12.5px]">
-              {regSuccessMsg ? (
-                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-center">
-                  {regSuccessMsg}
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <label className="block mb-1 font-bold text-[#10142d]">Entity Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Mahabank Enterprise"
-                      value={regName}
-                      onChange={(e) => setRegName(e.target.value)}
-                      className="w-full px-3 py-2 border border-[#e3e4ee] rounded-lg text-[13px] font-semibold outline-none focus:border-[#0089CF]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block mb-1 font-bold text-[#10142d]">Entity Type</label>
-                    <select
-                      value={regType}
-                      onChange={(e) => setRegType(e.target.value)}
-                      className="w-full px-3 py-2 border border-[#e3e4ee] rounded-lg text-[13px] font-semibold outline-none focus:border-[#0089CF] bg-white cursor-pointer"
-                    >
-                      <option value="ORGANIZATION">ORGANIZATION</option>
-                      <option value="INDIVIDUAL">INDIVIDUAL</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block mb-1 font-bold text-[#10142d]">Entity Email</label>
-                    <input
-                      type="email"
-                      placeholder="e.g. entity@mahabank.in"
-                      value={regEmail}
-                      onChange={(e) => setRegEmail(e.target.value)}
-                      className="w-full px-3 py-2 border border-[#e3e4ee] rounded-lg text-[13px] font-semibold outline-none focus:border-[#0089CF]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block mb-1 font-bold text-[#10142d]">Entity Mobile</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 9876543210"
-                      value={regMobile}
-                      onChange={(e) => setRegMobile(e.target.value)}
-                      className="w-full px-3 py-2 border border-[#e3e4ee] rounded-lg text-[13px] font-semibold outline-none focus:border-[#0089CF]"
-                    />
-                  </div>
-
-                  <div className="pt-2 flex items-center justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsRegisterModalOpen(false)}
-                      className="px-4 py-2 rounded-lg bg-neutral-200 hover:bg-neutral-300 text-[#10142d] font-bold cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isRegistering}
-                      className="px-4 py-2 rounded-lg bg-[#0089CF] hover:bg-[#0072ad] text-white font-extrabold cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                    >
-                      {isRegistering ? (
-                        <>
-                          <RefreshCw size={14} className="animate-spin" />
-                          <span>Registering...</span>
-                        </>
-                      ) : (
-                        <span>Register Entity</span>
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Register Entity Modal Dialog */}
+      <RegisterEntityModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        onSuccess={handleEntityCreatedSuccess}
+        initialName={searchQuery.trim()}
+      />
     </div>
   );
 }
