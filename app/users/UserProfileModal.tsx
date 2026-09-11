@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronUp,
   Lock,
+  LogOut,
 } from "lucide-react";
 import {
   fetchCurrentUserProfile,
@@ -31,6 +32,8 @@ interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   accessToken: string;
+  onLogout?: () => void;
+  isLoggingOut?: boolean;
 }
 
 function formatDate(dateStr: string | null | undefined): string {
@@ -55,7 +58,13 @@ function getInitials(name: string | null | undefined): string {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
-export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileModalProps) {
+export function UserProfileModal({
+  isOpen,
+  onClose,
+  accessToken,
+  onLogout,
+  isLoggingOut = false,
+}: UserProfileModalProps) {
   const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +97,7 @@ export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileMo
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadData();
       setShowChangePassword(false);
       setCurrentPassword("");
@@ -509,19 +519,32 @@ export function UserProfileModal({ isOpen, onClose, accessToken }: UserProfileMo
         <div className="bg-neutral-50 px-5 py-2.5 border-t border-[#e3e4ee] flex items-center justify-between shrink-0">
           <button
             onClick={loadData}
-            disabled={loading || changingPassword}
+            disabled={loading || changingPassword || isLoggingOut}
             className="flex items-center gap-1.5 text-[11.5px] font-bold text-[#0089CF] hover:text-[#0072ad] disabled:opacity-50 transition-colors cursor-pointer"
           >
             <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
             <span>Refresh Data</span>
           </button>
-          <button
-            onClick={onClose}
-            disabled={changingPassword}
-            className="px-3.5 py-1.5 rounded-lg bg-neutral-200 hover:bg-neutral-300 text-[#10142d] text-[12px] font-bold transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Close
-          </button>
+          <div className="flex items-center gap-2">
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                disabled={isLoggingOut || changingPassword}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-[12px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <LogOut size={13} />
+                <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              disabled={changingPassword || isLoggingOut}
+              className="px-3.5 py-1.5 rounded-lg bg-neutral-200 hover:bg-neutral-300 text-[#10142d] text-[12px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>

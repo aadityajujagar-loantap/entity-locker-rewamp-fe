@@ -12,7 +12,6 @@ import {
   UserCog,
   UserPlus,
   Settings,
-  LogOut,
   ChevronDown,
   Bell,
   ChevronRight,
@@ -167,7 +166,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
           src="/assets/bom-watermark.svg"
           alt=""
           aria-hidden="true"
-          className="absolute left-0 right-0 bottom-[36px] w-full h-[150px] object-contain object-bottom brightness-0 invert opacity-40 pointer-events-none z-0"
+          className="absolute left-0 right-0 bottom-[44px] w-full h-[150px] object-contain object-bottom brightness-0 invert opacity-40 pointer-events-none z-0"
         />
 
         {/* Top Logo Panel */}
@@ -409,19 +408,9 @@ export default function DashboardLayout({ children }: LayoutProps) {
         </nav>
 
         {/* Footer Info Area */}
-        <div className="relative z-10 mt-auto px-3 pt-3 pb-1 shrink-0 flex flex-col items-center select-none border-t border-white/8">
-          {/* Logout Link */}
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="flex items-center justify-center gap-2 w-full py-2 text-[12.5px] font-extrabold text-[#fecaca] hover:text-white hover:bg-red-500/20 rounded-[8px] transition-colors cursor-pointer mb-2 disabled:opacity-50"
-          >
-            <LogOut size={15} />
-            <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
-          </button>
-
+        <div className="relative z-10 mt-auto px-3 py-2 shrink-0 flex flex-col items-center select-none border-t border-white/8 bg-[#0089CF]">
           {/* Copyright Text */}
-          <div className="text-[10px] text-white/40 text-center font-medium leading-normal mb-1">
+          <div className="text-[10px] text-white/40 text-center font-medium leading-normal">
             Copyright &copy; {COPYRIGHT_YEAR} Bank of Maharashtra. All rights reserved.
           </div>
         </div>
@@ -493,6 +482,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         accessToken={authSession?.accessToken || ""}
+        onLogout={handleLogout}
+        isLoggingOut={isLoggingOut}
       />
     </div>
   );
