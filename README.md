@@ -1,5 +1,19 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Setup
+
+Create a `.env` file in the `frontend` root or copy from `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Configurable variables:
+- `NEXT_PUBLIC_PORTAL_API_BASE_URL`: Backend API base URL for portal endpoints (default: `http://localhost:8000/api/v1/portal`)
+- `NEXT_PUBLIC_API_BASE_URL`: Fallback API base URL (default: `http://localhost:8000/api/v1/portal`)
+- `NEXT_PUBLIC_APP_NAME`: Application display name
+- `NEXT_PUBLIC_APP_URL`: Frontend application origin URL
+
 ## Getting Started
 
 First, run the development server:

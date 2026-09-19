@@ -58,7 +58,14 @@ export class AuthApiError extends Error {
 }
 
 export function getPortalApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
+  if (process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL.replace(/\/+$/, "");
+  }
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    const base = process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/+$/, "");
+    return base.endsWith("/api/v1/portal") ? base : `${base}/api/v1/portal`;
+  }
+  return DEFAULT_API_BASE_URL.replace(/\/+$/, "");
 }
 
 export async function loginToPortal(credentials: LoginCredentials): Promise<LoginResponseData> {

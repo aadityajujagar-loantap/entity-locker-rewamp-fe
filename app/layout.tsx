@@ -18,7 +18,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Entity Locker",
+  title: process.env.NEXT_PUBLIC_APP_NAME || "Entity Locker",
   description: "Entity Locker revamped app",
 };
 
