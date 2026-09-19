@@ -163,7 +163,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
         {/* Sidebar Watermark Background */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/assets/bom-watermark.svg"
+          src="/mahabank-digidoc-portal/assets/bom-watermark.svg"
           alt=""
           aria-hidden="true"
           className="absolute left-0 right-0 bottom-[44px] w-full h-[150px] object-contain object-bottom brightness-0 invert opacity-40 pointer-events-none z-0"
@@ -173,7 +173,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
         <div className="relative z-10 px-4 pt-4 pb-3 flex justify-center items-center border-b border-white/8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/assets/bom_logo.svg"
+            src="/mahabank-digidoc-portal/assets/bom_logo.svg"
             alt="Bank of Maharashtra"
             className="w-full h-auto max-h-[64px] object-contain"
           />

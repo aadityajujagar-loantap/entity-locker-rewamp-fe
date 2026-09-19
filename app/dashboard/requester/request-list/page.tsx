@@ -182,7 +182,7 @@ const SAMPLE_DOCUMENTS = [
     type: "Bank Statement",
     size: "106 KB",
     status: "Verified",
-    url: "/samples/docs/hdfc.pdf",
+    url: "/mahabank-digidoc-portal/samples/docs/hdfc.pdf",
     fileKind: "pdf",
   },
   {
@@ -190,7 +190,7 @@ const SAMPLE_DOCUMENTS = [
     type: "Credit Report",
     size: "261 KB",
     status: "Verified",
-    url: "/samples/docs/sample_cibil.pdf",
+    url: "/mahabank-digidoc-portal/samples/docs/sample_cibil.pdf",
     fileKind: "pdf",
   },
   {
@@ -198,7 +198,7 @@ const SAMPLE_DOCUMENTS = [
     type: "Bank Statement",
     size: "78 KB",
     status: "Verified",
-    url: "/samples/docs/sbi.pdf",
+    url: "/mahabank-digidoc-portal/samples/docs/sbi.pdf",
     fileKind: "pdf",
   },
   {
@@ -206,7 +206,7 @@ const SAMPLE_DOCUMENTS = [
     type: "Image File",
     size: "134 KB",
     status: "Verified",
-    url: "/samples/files/1.jpg",
+    url: "/mahabank-digidoc-portal/samples/files/1.jpg",
     fileKind: "image",
   },
 ];
