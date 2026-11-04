@@ -182,11 +182,10 @@ export function RegisterEntityModal({
                   value={entityName}
                   onChange={(e) => setEntityName(e.target.value)}
                   disabled={submitting}
-                  className={`w-full px-3 py-2 border rounded-lg text-[13px] font-semibold outline-none transition-all ${
-                    getFieldError("entity_name")
+                  className={`w-full px-3 py-2 border rounded-lg text-[13px] font-semibold outline-none transition-all ${getFieldError("entity_name")
                       ? "border-red-500 bg-red-50/20 focus:border-red-600"
                       : "border-[#e3e4ee] focus:border-[#0089CF]"
-                  }`}
+                    }`}
                 />
                 {getFieldError("entity_name") && (
                   <p className="mt-1 text-[11px] font-bold text-red-600">
@@ -221,7 +220,7 @@ export function RegisterEntityModal({
               <div>
                 <label className="block mb-1 font-bold text-[#10142d] flex items-center gap-1">
                   <Mail size={13} className="text-[#0089CF]" />
-                  Entity Email
+                  Entity Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -229,11 +228,10 @@ export function RegisterEntityModal({
                   value={entityEmail}
                   onChange={(e) => setEntityEmail(e.target.value)}
                   disabled={submitting}
-                  className={`w-full px-3 py-2 border rounded-lg text-[13px] font-semibold outline-none transition-all ${
-                    getFieldError("entity_email")
+                  className={`w-full px-3 py-2 border rounded-lg text-[13px] font-semibold outline-none transition-all ${getFieldError("entity_email")
                       ? "border-red-500 bg-red-50/20 focus:border-red-600"
                       : "border-[#e3e4ee] focus:border-[#0089CF]"
-                  }`}
+                    }`}
                 />
                 {getFieldError("entity_email") && (
                   <p className="mt-1 text-[11px] font-bold text-red-600">
@@ -255,11 +253,10 @@ export function RegisterEntityModal({
                   value={entityMobile}
                   onChange={(e) => setEntityMobile(e.target.value)}
                   disabled={submitting}
-                  className={`w-full px-3 py-2 border rounded-lg text-[13px] font-semibold outline-none transition-all ${
-                    getFieldError("entity_mobile")
+                  className={`w-full px-3 py-2 border rounded-lg text-[13px] font-semibold outline-none transition-all ${getFieldError("entity_mobile")
                       ? "border-red-500 bg-red-50/20 focus:border-red-600"
                       : "border-[#e3e4ee] focus:border-[#0089CF]"
-                  }`}
+                    }`}
                 />
                 {getFieldError("entity_mobile") && (
                   <p className="mt-1 text-[11px] font-bold text-red-600">

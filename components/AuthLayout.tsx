@@ -7,6 +7,8 @@ import { Headphones } from "lucide-react";
 // bom-watermark.svg (left panel, full-bleed bg watermark)
 // No footer – fits in 100vh with no scroll
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 interface AuthLayoutProps {
   children: React.ReactNode;
 }
@@ -21,7 +23,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         <div className="absolute bottom-0 left-0 right-0 w-full pointer-events-none z-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/mahabank-digidoc-portal/assets/bom-watermark.svg"
+            src={`${basePath}/assets/bom-watermark.svg`}
             alt=""
             aria-hidden="true"
             className="w-full h-[400px] max-h-[500px] object-contain object-bottom block brightness-0 invert opacity-40"
@@ -35,7 +37,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           <div className="inline-flex items-center w-fit shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/mahabank-digidoc-portal/assets/bom_logo.svg"
+              src={`${basePath}/assets/bom_logo.svg`}
               alt="Bank of Maharashtra"
               className="h-[clamp(72px,7.5vh,78px)] w-auto block"
             />
@@ -63,7 +65,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         {/* Entity Locker logo – pinned top-right */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/mahabank-digidoc-portal/assets/entityLocker-logo.svg"
+          src={`${basePath}/assets/entityLocker-logo.svg`}
           alt="Entity Locker"
           className="absolute top-[clamp(18px,2.5vh,30px)] right-[clamp(20px,2.5vw,36px)] z-50 block h-[40px] w-auto"
         />

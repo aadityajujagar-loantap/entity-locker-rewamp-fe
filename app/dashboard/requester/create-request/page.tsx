@@ -51,7 +51,7 @@ function CreateRequestFormContent() {
   const [loadingEntity, setLoadingEntity] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [generatedLink, setGeneratedLink] = useState<string>("https://mahabank.elocker.in/consent/abc123def456");
+  const [generatedLink, setGeneratedLink] = useState<string>("");
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
   // Auto-fetch entity details if entity_id query parameter is present
@@ -173,7 +173,7 @@ function CreateRequestFormContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 items-start">
         {/* ══════════════ LEFT COLUMN: FORM ══════════════ */}
         <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-2">
-          
+
           {/* Section 1: Entity Details (Renamed from Customer Details) */}
           <div className="bg-white rounded-[16px] border border-[#e3e4ee] p-5 shadow-[0_2px_12px_rgba(18,22,46,0.03)] space-y-4 relative">
             <div className="flex items-center justify-between">
@@ -440,7 +440,7 @@ function CreateRequestFormContent() {
                 <input
                   type="text"
                   disabled
-                  value={entityMobile ? `+91 ${entityMobile}` : "+91 9876543210"}
+                  value={entityMobile ? `+91 ${entityMobile}` : ""}
                   className="h-[34px] px-3 bg-[#f3f4f6] border border-neutral-200 rounded-[8px] text-[12.5px] font-bold text-neutral-500 outline-none select-none"
                 />
               </div>
@@ -461,7 +461,7 @@ function CreateRequestFormContent() {
                 <input
                   type="text"
                   disabled
-                  value={entityEmail || "entity@mahabank.in"}
+                  value={entityEmail || ""}
                   className="h-[34px] px-3 bg-[#f3f4f6] border border-neutral-200 rounded-[8px] text-[12.5px] font-bold text-neutral-500 outline-none select-none overflow-hidden text-ellipsis"
                 />
               </div>
@@ -482,7 +482,7 @@ function CreateRequestFormContent() {
                 <input
                   type="text"
                   disabled
-                  value={entityMobile ? `+91 ${entityMobile}` : "+91 9876543210"}
+                  value={entityMobile ? `+91 ${entityMobile}` : ""}
                   className="h-[34px] px-3 bg-[#f3f4f6] border border-neutral-200 rounded-[8px] text-[12.5px] font-bold text-neutral-500 outline-none select-none"
                 />
               </div>

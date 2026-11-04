@@ -30,6 +30,7 @@ interface LayoutProps {
 }
 
 const COPYRIGHT_YEAR = "2026";
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 function getInitials(name: string) {
   const initials = name
@@ -159,11 +160,11 @@ export default function DashboardLayout({ children }: LayoutProps) {
     <div className="flex h-screen w-screen overflow-hidden bg-[#f4f7fe] font-manrope">
       {/* ══════════════ LEFT SIDEBAR ══════════════ */}
       <aside className="relative flex flex-col w-[250px] h-full bg-[#0089CF] text-white shrink-0 z-20 shadow-[4px_0_24px_rgba(0,137,207,0.15)] select-none overflow-hidden">
-        
+
         {/* Sidebar Watermark Background */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/mahabank-digidoc-portal/assets/bom-watermark.svg"
+          src={`${basePath}/assets/bom-watermark.svg`}
           alt=""
           aria-hidden="true"
           className="absolute left-0 right-0 bottom-[44px] w-full h-[150px] object-contain object-bottom brightness-0 invert opacity-40 pointer-events-none z-0"
@@ -173,7 +174,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
         <div className="relative z-10 px-4 pt-4 pb-3 flex justify-center items-center border-b border-white/8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/mahabank-digidoc-portal/assets/bom_logo.svg"
+            src={`${basePath}/assets/bom_logo.svg`}
             alt="Bank of Maharashtra"
             className="w-full h-auto max-h-[64px] object-contain"
           />
@@ -181,15 +182,14 @@ export default function DashboardLayout({ children }: LayoutProps) {
 
         {/* Navigation Menu Scroll Container */}
         <nav className="relative z-10 flex-1 overflow-y-auto px-2.5 pt-3 pb-2 space-y-1 scrollbar-thin scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20">
-          
+
           {/* 1. Dashboard Link */}
           <button
             onClick={() => handleNavigation("/dashboard")}
-            className={`flex items-center gap-3 w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${
-              isActiveMain("/dashboard")
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${isActiveMain("/dashboard")
                 ? "bg-[#0072ad] text-white shadow-[0_4px_12px_rgba(0,114,173,0.3)]"
                 : "text-white/70 hover:bg-white/5 hover:text-white"
-            }`}
+              }`}
           >
             <LayoutDashboard size={17} className="shrink-0" />
             <span>Dashboard</span>
@@ -199,11 +199,10 @@ export default function DashboardLayout({ children }: LayoutProps) {
           <div>
             <button
               onClick={() => toggleAccordion("requester")}
-              className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${
-                pathname.includes("/dashboard/requester")
+              className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${pathname.includes("/dashboard/requester")
                   ? "text-white bg-white/5"
                   : "text-white/70 hover:bg-white/5 hover:text-white"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <Users size={17} className="shrink-0" />
@@ -214,9 +213,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
 
             {/* Submenu Items for Requester */}
             <div
-              className={`mt-1 pl-3.5 space-y-0.5 transition-all duration-300 overflow-hidden ${
-                isRequesterOpen ? "max-h-[310px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
-              }`}
+              className={`mt-1 pl-3.5 space-y-0.5 transition-all duration-300 overflow-hidden ${isRequesterOpen ? "max-h-[310px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+                }`}
             >
               {[
                 { label: "Entity List", path: "/dashboard/requester/entity-list", icon: Building2 },
@@ -233,11 +231,10 @@ export default function DashboardLayout({ children }: LayoutProps) {
                   <button
                     key={item.path}
                     onClick={() => handleNavigation(item.path)}
-                    className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] font-semibold transition-all duration-150 text-left cursor-pointer ${
-                      isActive
+                    className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] font-semibold transition-all duration-150 text-left cursor-pointer ${isActive
                         ? "bg-[#0072ad] text-white shadow-[0_3px_10px_rgba(0,114,173,0.2)]"
                         : "text-white/60 hover:bg-white/4 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Icon size={14} aria-hidden="true" className="shrink-0" />
                     <span className="whitespace-nowrap">{item.label}</span>
@@ -248,7 +245,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
           </div>
 
           {/* 3. Issuer */}
-          <div>
+          {/* <div>
             <button
               onClick={() => toggleAccordion("issuer")}
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
@@ -265,10 +262,10 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 <span>Issuer Panel</span>
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* 4. API Management */}
-          <div>
+          {/* <div>
             <button
               onClick={() => toggleAccordion("api")}
               className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${
@@ -313,10 +310,10 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 );
               })}
             </div>
-          </div>
+          </div> */}
 
           {/* 5. API Logs & Monitoring */}
-          <div>
+          {/* <div>
             <button
               onClick={() => toggleAccordion("apiLogs")}
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
@@ -327,10 +324,10 @@ export default function DashboardLayout({ children }: LayoutProps) {
               </div>
               <ChevronDown size={16} className={`transition-transform duration-200 ${isApiLogsOpen ? "rotate-180" : ""}`} />
             </button>
-          </div>
+          </div> */}
 
           {/* 6. Reports */}
-          <div>
+          {/* <div>
             <button
               onClick={() => toggleAccordion("reports")}
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
@@ -341,17 +338,16 @@ export default function DashboardLayout({ children }: LayoutProps) {
               </div>
               <ChevronDown size={16} className={`transition-transform duration-200 ${isReportsOpen ? "rotate-180" : ""}`} />
             </button>
-          </div>
+          </div> */}
 
           {/* 7. Users & Roles (With Submenus: Users, Create User) */}
           <div>
             <button
               onClick={() => toggleAccordion("users")}
-              className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${
-                pathname.includes("/users")
+              className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${pathname.includes("/users")
                   ? "text-white bg-white/5"
                   : "text-white/70 hover:bg-white/5 hover:text-white"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <UserCog size={17} className="shrink-0" />
@@ -362,9 +358,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
 
             {/* Submenu Items for Users & Roles */}
             <div
-              className={`mt-1 pl-3.5 space-y-0.5 transition-all duration-300 overflow-hidden ${
-                isUsersOpen ? "max-h-[150px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
-              }`}
+              className={`mt-1 pl-3.5 space-y-0.5 transition-all duration-300 overflow-hidden ${isUsersOpen ? "max-h-[150px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+                }`}
             >
               {[
                 { label: "Users", path: "/users", icon: Users },
@@ -377,11 +372,10 @@ export default function DashboardLayout({ children }: LayoutProps) {
                   <button
                     key={item.path}
                     onClick={() => handleNavigation(item.path)}
-                    className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] font-semibold transition-all duration-150 text-left cursor-pointer ${
-                      isActive
+                    className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] font-semibold transition-all duration-150 text-left cursor-pointer ${isActive
                         ? "bg-[#0072ad] text-white shadow-[0_3px_10px_rgba(0,114,173,0.2)]"
                         : "text-white/60 hover:bg-white/4 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Icon size={14} aria-hidden="true" className="shrink-0" />
                     <span className="whitespace-nowrap">{item.label}</span>
@@ -392,7 +386,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
           </div>
 
           {/* 8. Settings */}
-          <div>
+          {/* <div>
             <button
               onClick={() => toggleAccordion("settings")}
               className="flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold text-white/70 hover:bg-white/5 hover:text-white transition-all duration-150 cursor-pointer"
@@ -403,7 +397,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
               </div>
               <ChevronDown size={16} className={`transition-transform duration-200 ${isSettingsOpen ? "rotate-180" : ""}`} />
             </button>
-          </div>
+          </div> */}
 
         </nav>
 
@@ -419,10 +413,10 @@ export default function DashboardLayout({ children }: LayoutProps) {
 
       {/* ══════════════ MAIN CONTENT WRAPPER ══════════════ */}
       <div className="flex flex-col flex-1 h-full min-w-0 overflow-hidden">
-        
+
         {/* Top Header Bar */}
         <header className="h-[60px] bg-white border-b border-[#e3e4ee] px-5 flex items-center justify-between shrink-0 z-10 shadow-xs">
-          
+
           {/* Breadcrumb Navigation */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[12px] font-bold text-[#5e6272]">
             <span className="text-[#0089CF] font-extrabold">Portal</span>
