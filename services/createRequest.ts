@@ -5,6 +5,8 @@ export interface GenerateAuthUrlParams {
   dl_flow?: string;
   acr?: string;
   purpose?: string;
+  doc_category?: string;
+  notes?: string;
   consent_valid_till?: number;
 }
 
@@ -59,6 +61,14 @@ export async function generateAuthorizationUrl(
   if (params.purpose) {
     queryParts.push(`purpose=${encodeURIComponent(params.purpose)}`);
   }
+
+  if (params.doc_category) {
+    queryParts.push(`doc_category=${encodeURIComponent(params.doc_category)}`);
+  }
+  if (params.notes) {
+    queryParts.push(`notes=${encodeURIComponent(params.notes)}`);
+  }
+
   if (params.consent_valid_till) {
     queryParts.push(`consent_valid_till=${encodeURIComponent(String(params.consent_valid_till))}`);
   }

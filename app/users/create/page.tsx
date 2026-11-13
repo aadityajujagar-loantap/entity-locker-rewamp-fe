@@ -30,7 +30,7 @@ export default function CreateUserPage() {
     branch_name: "",
     status: "ACTIVE",
     password: "",
-    role: "user",
+    role: "branch_user",
   });
 
   const [loading, setLoading] = useState(false);

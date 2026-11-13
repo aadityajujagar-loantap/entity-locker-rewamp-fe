@@ -21,6 +21,7 @@ import {
 import { getAuthSession } from "@/lib/auth";
 import { fetchEntityDetails } from "@/services/EntityListPage";
 import { generateAuthorizationUrl, GenerateAuthUrlApiError } from "@/services/createRequest";
+import { sendConsentNotificationEmail } from "@/services/notificationService";
 
 function CreateRequestFormContent() {
   const searchParams = useSearchParams();
@@ -118,10 +119,25 @@ function CreateRequestFormContent() {
         mappedPurpose = "verification";
       }
 
+      const daysMap: Record<string, number> = {
+        "1 Day": 1,
+        "3 Days": 3,
+        "7 Days": 7,
+        "15 Days": 15,
+        "30 Days": 30,
+        "60 Days": 60,
+        "90 Days": 90,
+      };
+      const days = daysMap[validity] ?? 7;
+      const consentValidTillTimestamp = Math.floor(Date.now() / 1000) + days * 86400;
+
       const response = await generateAuthorizationUrl(
         {
           entity_id: entityId.trim(),
           purpose: mappedPurpose,
+          doc_category: docCategory,
+          notes: notes.trim() || undefined,
+          consent_valid_till: consentValidTillTimestamp,
         },
         session.accessToken
       );
@@ -130,7 +146,38 @@ function CreateRequestFormContent() {
         setGeneratedLink(response.authorization_url);
       }
 
-      setSuccessMsg(`Consent authorization URL generated successfully for ${entityName || entityId}!`);
+      let emailNotificationResult = null;
+      let emailWarningMsg: string | null = null;
+
+      // Dispatch Email Notification if Send via Email is selected
+      if (sendEmail && response.authorization_url) {
+        try {
+          emailNotificationResult = await sendConsentNotificationEmail(
+            {
+              entity_id: entityId.trim(),
+              consent_url: response.authorization_url,
+              email: entityEmail.trim() || undefined,
+            },
+            session.accessToken
+          );
+        } catch (emailErr: unknown) {
+          console.warn("Consent notification email dispatch warning:", emailErr);
+          emailWarningMsg =
+            emailErr instanceof Error ? emailErr.message : "Failed to deliver email notification.";
+        }
+      }
+
+      if (emailNotificationResult) {
+        setSuccessMsg(
+          `Consent authorization URL generated and official notification email dispatched to ${emailNotificationResult.recipient_email}!`
+        );
+      } else if (emailWarningMsg) {
+        setSuccessMsg(
+          `Consent authorization URL generated successfully. (Note: Email dispatch pending/warning: ${emailWarningMsg})`
+        );
+      } else {
+        setSuccessMsg(`Consent authorization URL generated successfully for ${entityName || entityId}!`);
+      }
     } catch (err: unknown) {
       if (err instanceof GenerateAuthUrlApiError) {
         setErrorMsg(err.message);
@@ -567,7 +614,7 @@ function CreateRequestFormContent() {
               <span className="text-[10px] font-bold text-[#5e6272] uppercase block mb-1.5">Link Validity</span>
               <div className="flex items-center gap-2 text-[12.5px] font-bold text-[#10142d]">
                 <Calendar size={16} className="text-[#0089CF]" />
-                <span>7 Days <span className="text-[#5e6272] font-semibold">from generation</span></span>
+                <span>{validity} <span className="text-[#5e6272] font-semibold">from generation</span></span>
               </div>
             </div>
           </div>
