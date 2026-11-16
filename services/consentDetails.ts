@@ -14,6 +14,14 @@ export interface ConsentDetailsData {
   consent_valid_till: string | null;
   created_at: string;
   updated_at: string;
+  entity_name?: string | null;
+  entity_email?: string | null;
+  entity_mobile?: string | null;
+  entity_type?: string | null;
+  purpose?: string | null;
+  doc_category?: string | null;
+  notes?: string | null;
+  documents_count?: number;
 }
 
 export interface ConsentDetailsApiResponse {

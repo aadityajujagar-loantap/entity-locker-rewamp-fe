@@ -148,6 +148,11 @@ export default function DashboardLayout({ children }: LayoutProps) {
   const isUsersOpen = openAccordion === "users";
   const isSettingsOpen = openAccordion === "settings";
 
+  // Check if logged-in user is an admin
+  const isAdmin = Boolean(
+    authSession?.roles?.some((role) => role.toLowerCase() === "admin")
+  );
+
   if (!authSession) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[#f4f7fe] font-manrope text-[13px] font-bold text-[#5e6272]">
@@ -187,8 +192,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
           <button
             onClick={() => handleNavigation("/dashboard")}
             className={`flex items-center gap-3 w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${isActiveMain("/dashboard")
-                ? "bg-[#0072ad] text-white shadow-[0_4px_12px_rgba(0,114,173,0.3)]"
-                : "text-white/70 hover:bg-white/5 hover:text-white"
+              ? "bg-[#0072ad] text-white shadow-[0_4px_12px_rgba(0,114,173,0.3)]"
+              : "text-white/70 hover:bg-white/5 hover:text-white"
               }`}
           >
             <LayoutDashboard size={17} className="shrink-0" />
@@ -200,8 +205,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
             <button
               onClick={() => toggleAccordion("requester")}
               className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${pathname.includes("/dashboard/requester")
-                  ? "text-white bg-white/5"
-                  : "text-white/70 hover:bg-white/5 hover:text-white"
+                ? "text-white bg-white/5"
+                : "text-white/70 hover:bg-white/5 hover:text-white"
                 }`}
             >
               <div className="flex items-center gap-3">
@@ -232,8 +237,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
                     key={item.path}
                     onClick={() => handleNavigation(item.path)}
                     className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] font-semibold transition-all duration-150 text-left cursor-pointer ${isActive
-                        ? "bg-[#0072ad] text-white shadow-[0_3px_10px_rgba(0,114,173,0.2)]"
-                        : "text-white/60 hover:bg-white/4 hover:text-white"
+                      ? "bg-[#0072ad] text-white shadow-[0_3px_10px_rgba(0,114,173,0.2)]"
+                      : "text-white/60 hover:bg-white/4 hover:text-white"
                       }`}
                   >
                     <Icon size={14} aria-hidden="true" className="shrink-0" />
@@ -341,50 +346,51 @@ export default function DashboardLayout({ children }: LayoutProps) {
           </div> */}
 
           {/* 7. Users & Roles (With Submenus: Users, Create User) */}
-          <div>
-            <button
-              onClick={() => toggleAccordion("users")}
-              className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${pathname.includes("/users")
+          {isAdmin && (
+            <div>
+              <button
+                onClick={() => toggleAccordion("users")}
+                className={`flex items-center justify-between w-full px-3 py-2 rounded-[9px] text-[13.5px] font-bold transition-all duration-150 cursor-pointer ${pathname.includes("/users")
                   ? "text-white bg-white/5"
                   : "text-white/70 hover:bg-white/5 hover:text-white"
-                }`}
-            >
-              <div className="flex items-center gap-3">
-                <UserCog size={17} className="shrink-0" />
-                <span>Users &amp; Roles</span>
-              </div>
-              <ChevronDown size={16} className={`transition-transform duration-200 ${isUsersOpen ? "rotate-180" : ""}`} />
-            </button>
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <UserCog size={17} className="shrink-0" />
+                  <span>Users &amp; Roles</span>
+                </div>
+                <ChevronDown size={16} className={`transition-transform duration-200 ${isUsersOpen ? "rotate-180" : ""}`} />
+              </button>
 
-            {/* Submenu Items for Users & Roles */}
-            <div
-              className={`mt-1 pl-3.5 space-y-0.5 transition-all duration-300 overflow-hidden ${isUsersOpen ? "max-h-[150px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
-                }`}
-            >
-              {[
-                { label: "Users", path: "/users", icon: Users },
-                { label: "Create User", path: "/users/create", icon: UserPlus },
-              ].map((item) => {
-                const Icon = item.icon;
-                const isActive = isActiveSub(item.path);
+              {/* Submenu Items for Users & Roles */}
+              <div
+                className={`mt-1 pl-3.5 space-y-0.5 transition-all duration-300 overflow-hidden ${isUsersOpen ? "max-h-[150px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+                  }`}
+              >
+                {[
+                  { label: "Users", path: "/users", icon: Users },
+                  { label: "Create User", path: "/users/create", icon: UserPlus },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const isActive = isActiveSub(item.path);
 
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => handleNavigation(item.path)}
-                    className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] font-semibold transition-all duration-150 text-left cursor-pointer ${isActive
+                  return (
+                    <button
+                      key={item.path}
+                      onClick={() => handleNavigation(item.path)}
+                      className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[12.5px] font-semibold transition-all duration-150 text-left cursor-pointer ${isActive
                         ? "bg-[#0072ad] text-white shadow-[0_3px_10px_rgba(0,114,173,0.2)]"
                         : "text-white/60 hover:bg-white/4 hover:text-white"
-                      }`}
-                  >
-                    <Icon size={14} aria-hidden="true" className="shrink-0" />
-                    <span className="whitespace-nowrap">{item.label}</span>
-                  </button>
-                );
-              })}
+                        }`}
+                    >
+                      <Icon size={14} aria-hidden="true" className="shrink-0" />
+                      <span className="whitespace-nowrap">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-
+          )}
           {/* 8. Settings */}
           {/* <div>
             <button
