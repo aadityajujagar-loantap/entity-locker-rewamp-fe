@@ -225,8 +225,8 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 { label: "Entity List", path: "/dashboard/requester/entity-list", icon: Building2 },
                 { label: "Request List", path: "/dashboard/requester/request-list", icon: ClipboardList },
                 { label: "Consent Details", path: "/dashboard/requester/consent-details", icon: PanelTop },
-                { label: "Consent History", path: "/dashboard/requester/consent-history", icon: Boxes },
-                { label: "Shared Link Status", path: "/dashboard/requester/shared-link-status", icon: Activity },
+                // { label: "Consent History", path: "/dashboard/requester/consent-history", icon: Boxes },
+                { label: "Consent History", path: "/dashboard/requester/shared-link-status", icon: Activity },
                 { label: "Document List", path: "/dashboard/requester/document-list", icon: FileText },
               ].map((item) => {
                 const Icon = item.icon;

@@ -118,8 +118,8 @@ export default function ApiManagementOverviewPage() {
   const [activeTab, setActiveTab] = useState<"subscriptions" | "top-apis">("subscriptions");
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-2 p-2 animate-fade-in">
-      
+    <div className="mx-auto  space-y-2 p-2 animate-fade-in">
+
       {/* 1. Metrics Grid */}
       <section className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" aria-label="API overview metrics">
         {metrics.map((metric) => {
@@ -150,30 +150,28 @@ export default function ApiManagementOverviewPage() {
 
       {/* 2. Split Layout */}
       <div className="grid grid-cols-1 items-start gap-2 xl:grid-cols-[minmax(0,2.28fr)_minmax(320px,1fr)]">
-        
+
         {/* Left Column */}
         <div className="space-y-2">
-          
+
           {/* Recent API Subscriptions & Top Performing APIs */}
           <section className="overflow-hidden rounded-[16px] border border-[#e3e4ee] bg-white shadow-[0_2px_12px_rgba(18,22,46,0.02)]">
             <div className="flex h-[44px] items-end gap-6 border-b border-[#e3e4ee] px-5 bg-white">
               <button
                 onClick={() => setActiveTab("subscriptions")}
-                className={`h-full border-b-2 text-[13px] font-extrabold transition-colors cursor-pointer ${
-                  activeTab === "subscriptions"
+                className={`h-full border-b-2 text-[13px] font-extrabold transition-colors cursor-pointer ${activeTab === "subscriptions"
                     ? "border-[#0089CF] text-[#0089CF]"
                     : "border-transparent text-[#5e6272] hover:text-[#10142d]"
-                }`}
+                  }`}
               >
                 Recent API Subscriptions
               </button>
               <button
                 onClick={() => setActiveTab("top-apis")}
-                className={`h-full border-b-2 text-[13px] font-extrabold transition-colors cursor-pointer ${
-                  activeTab === "top-apis"
+                className={`h-full border-b-2 text-[13px] font-extrabold transition-colors cursor-pointer ${activeTab === "top-apis"
                     ? "border-[#0089CF] text-[#0089CF]"
                     : "border-transparent text-[#5e6272] hover:text-[#10142d]"
-                }`}
+                  }`}
               >
                 Top Performing APIs
               </button>
@@ -241,7 +239,7 @@ export default function ApiManagementOverviewPage() {
                 </table>
               )}
             </div>
-            
+
             <div className="px-5 py-3">
               <Link href="/dashboard/api-management/subscriptions" className="inline-flex items-center gap-1 text-[11.5px] font-extrabold text-[#0089CF] hover:underline">
                 <span>View all subscriptions</span>
@@ -255,7 +253,7 @@ export default function ApiManagementOverviewPage() {
             <div className="px-5 pt-3.5 pb-2">
               <h2 className="text-[14px] font-extrabold text-[#10142d]">Vendor/Client Onboarding</h2>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-2 px-5 py-2 sm:grid-cols-4">
               {onboardingSummary.map((item) => {
                 const Icon = item.icon;
@@ -325,7 +323,7 @@ export default function ApiManagementOverviewPage() {
 
         {/* Right Column */}
         <aside className="space-y-2">
-          
+
           {/* API Usage Summary */}
           <section className="rounded-[16px] border border-[#e3e4ee] bg-white shadow-[0_2px_12px_rgba(18,22,46,0.02)]">
             <h2 className="border-b border-[#e3e4ee] px-5 py-3.5 text-[14px] font-extrabold text-[#10142d]">API Usage Summary (This Month)</h2>

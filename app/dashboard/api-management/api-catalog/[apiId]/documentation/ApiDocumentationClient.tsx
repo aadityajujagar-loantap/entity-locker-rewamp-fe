@@ -560,7 +560,7 @@ export default function ApiDocumentationClient({ params }: { params: Promise<{ a
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-2 p-2 animate-fade-in">
+    <div className="mx-auto  space-y-2 p-2 animate-fade-in">
       {/* Back Link */}
       <Link
         href="/dashboard/api-management/api-catalog"
@@ -663,11 +663,10 @@ export default function ApiDocumentationClient({ params }: { params: Promise<{ a
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`h-[36px] border-b-2 px-1 text-[13px] font-extrabold whitespace-nowrap transition-colors cursor-pointer ${
-                isActive
+              className={`h-[36px] border-b-2 px-1 text-[13px] font-extrabold whitespace-nowrap transition-colors cursor-pointer ${isActive
                   ? "border-[#0089CF] text-[#0089CF]"
                   : "border-transparent text-[#5e6272] hover:text-[#10142d]"
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -678,7 +677,7 @@ export default function ApiDocumentationClient({ params }: { params: Promise<{ a
       {/* Tab Contents */}
       {activeTab === "Endpoints" ? (
         <div className="grid grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)_370px] gap-2 items-start">
-          
+
           {/* Left Column - Endpoint Navigation */}
           <aside className="rounded-[16px] border border-[#e3e4ee] bg-white p-3 shadow-[0_2px_12px_rgba(18,22,46,0.02)] flex flex-col space-y-3.5">
             <div className="relative">
@@ -705,18 +704,16 @@ export default function ApiDocumentationClient({ params }: { params: Promise<{ a
                       <button
                         key={ep.id}
                         onClick={() => setSelectedEndpointId(ep.id)}
-                        className={`flex flex-col w-full text-left p-2 rounded-[6px] transition-all cursor-pointer ${
-                          isActive
+                        className={`flex flex-col w-full text-left p-2 rounded-[6px] transition-all cursor-pointer ${isActive
                             ? "bg-[#eff6ff] border-l-[3px] border-[#0089CF] rounded-l-none"
                             : "hover:bg-[#f8fafc]"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-1.5">
-                          <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${
-                            ep.method === "GET"
+                          <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${ep.method === "GET"
                               ? "bg-[#ecfdf3] text-[#16a34a] border-[#bbf7d0]"
                               : "bg-[#eff6ff] text-[#2563eb] border-[#bfdbfe]"
-                          }`}>
+                            }`}>
                             {ep.method}
                           </span>
                           <span className={`text-[12px] font-extrabold truncate ${isActive ? "text-[#0089CF]" : "text-[#10142d]"}`}>
@@ -746,11 +743,10 @@ export default function ApiDocumentationClient({ params }: { params: Promise<{ a
                       <button
                         key={ep.id}
                         onClick={() => setSelectedEndpointId(ep.id)}
-                        className={`flex flex-col w-full text-left p-2 rounded-[6px] transition-all cursor-pointer ${
-                          isActive
+                        className={`flex flex-col w-full text-left p-2 rounded-[6px] transition-all cursor-pointer ${isActive
                             ? "bg-[#eff6ff] border-l-[3px] border-[#0089CF] rounded-l-none"
                             : "hover:bg-[#f8fafc]"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-1.5">
                           <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded border bg-[#ecfdf3] text-[#16a34a] border-[#bbf7d0]">
@@ -814,9 +810,8 @@ export default function ApiDocumentationClient({ params }: { params: Promise<{ a
                             <td className="px-3 py-1 font-extrabold text-[#0089CF]">{param.name}</td>
                             <td className="px-3 py-1 text-[#5e6272] text-[11.5px]">{param.type}</td>
                             <td className="px-3 py-1">
-                              <span className={`text-[10px] font-bold px-2 py-0.2 rounded ${
-                                param.required ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-500"
-                              }`}>
+                              <span className={`text-[10px] font-bold px-2 py-0.2 rounded ${param.required ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-500"
+                                }`}>
                                 {param.required ? "Yes" : "No"}
                               </span>
                             </td>
@@ -847,9 +842,8 @@ export default function ApiDocumentationClient({ params }: { params: Promise<{ a
                           <tr key={header.name} className="h-[34px] font-semibold text-[#10142d]">
                             <td className="px-3 py-1 font-extrabold text-[#10142d]">{header.name}</td>
                             <td className="px-3 py-1">
-                              <span className={`text-[10px] font-bold px-2 py-0.2 rounded ${
-                                header.required ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-500"
-                              }`}>
+                              <span className={`text-[10px] font-bold px-2 py-0.2 rounded ${header.required ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-500"
+                                }`}>
                                 {header.required ? "Yes" : "No"}
                               </span>
                             </td>
@@ -880,9 +874,8 @@ export default function ApiDocumentationClient({ params }: { params: Promise<{ a
                         return (
                           <tr key={resp.code} className="h-[34px] font-semibold text-[#10142d]">
                             <td className="px-3 py-1">
-                              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded ${
-                                isSuccess ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
-                              }`}>
+                              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded ${isSuccess ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
+                                }`}>
                                 {resp.code}
                               </span>
                             </td>
@@ -949,18 +942,16 @@ export default function ApiDocumentationClient({ params }: { params: Promise<{ a
                     <span className="font-bold text-slate-300 mr-1.5">Response Example (200)</span>
                     <button
                       onClick={() => setResponseTab("json")}
-                      className={`h-[20px] px-2.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                        responseTab === "json" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
-                      }`}
+                      className={`h-[20px] px-2.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${responseTab === "json" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+                        }`}
                     >
                       JSON
                     </button>
                     {activeEndpoint.responseExample.binary && (
                       <button
                         onClick={() => setResponseTab("binary")}
-                        className={`h-[20px] px-2.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${
-                          responseTab === "binary" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
-                        }`}
+                        className={`h-[20px] px-2.5 rounded text-[10.5px] font-bold transition-all cursor-pointer ${responseTab === "binary" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+                          }`}
                       >
                         PDF (Binary)
                       </button>

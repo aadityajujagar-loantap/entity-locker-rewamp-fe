@@ -186,7 +186,7 @@ export default function EntityListPage() {
   };
 
   return (
-    <div className="p-3 max-w-[1400px] mx-auto space-y-3 font-manrope animate-fade-in">
+    <div className="p-3  mx-auto space-y-3 font-manrope animate-fade-in">
       {/* Title Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
@@ -199,7 +199,7 @@ export default function EntityListPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Register Entity Primary Button */}
+          {/* [OLD CODE - COMMENTED OUT AS PER REQUIREMENT: Register Entity removed from Entity List]
           <button
             onClick={() => setIsRegisterModalOpen(true)}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#0089CF] hover:bg-[#0072ad] text-white text-[12.5px] font-extrabold transition-all shadow-xs cursor-pointer"
@@ -207,6 +207,7 @@ export default function EntityListPage() {
             <Plus size={15} />
             <span>Register Entity</span>
           </button>
+          */}
           <button
             onClick={loadEntities}
             disabled={loading}
@@ -263,14 +264,14 @@ export default function EntityListPage() {
 
       {/* Main Workspace Split Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-2 items-stretch">
-        
+
         {/* Table Main Area */}
         <div className={`${selectedEntity ? "xl:col-span-3" : "xl:col-span-4"} h-full space-y-3 bg-white border border-[#e3e4ee] rounded-[14px] p-4 shadow-[0_2px_12px_rgba(18,22,46,0.03)]`}>
-          
+
           {/* Filters Bar */}
           <div className="flex flex-wrap gap-2.5 items-center justify-between border-b border-[#e3e4ee] pb-3">
             <div className="flex flex-1 min-w-0 flex-wrap gap-2 items-center">
-              
+
               {/* Search Bar */}
               <div className="relative flex min-[#240px] flex-1 items-center h-[36px] border border-[#e3e4ee] rounded-[9px] focus-within:border-[#0089CF] bg-white">
                 <Search size={14} className="absolute left-3 text-[#5e6272]" />
@@ -309,6 +310,7 @@ export default function EntityListPage() {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* [OLD CODE - COMMENTED OUT AS PER REQUIREMENT]
               <button
                 onClick={() => setIsRegisterModalOpen(true)}
                 className="flex items-center gap-1.5 px-3 h-[36px] rounded-[9px] bg-[#0089CF] hover:bg-[#0072ad] text-white text-[12px] font-extrabold cursor-pointer transition-all shadow-2xs"
@@ -316,6 +318,7 @@ export default function EntityListPage() {
                 <Plus size={14} />
                 <span>Register Entity</span>
               </button>
+              */}
               <button className="flex items-center gap-1.5 px-3 h-[36px] border border-[#e3e4ee] rounded-[9px] text-[12px] font-bold text-[#10142d] hover:bg-neutral-50 cursor-pointer bg-white">
                 <DownloadCloud size={13} />
                 <span>Export</span>
@@ -366,9 +369,8 @@ export default function EntityListPage() {
                     <tr
                       key={item.id}
                       onClick={() => handleSelectEntity(item)}
-                      className={`text-[11.5px] font-semibold text-[#10142d] hover:bg-neutral-50 transition-colors cursor-pointer select-none whitespace-nowrap ${
-                        selectedEntity?.id === item.id ? "bg-blue-50/50" : ""
-                      }`}
+                      className={`text-[11.5px] font-semibold text-[#10142d] hover:bg-neutral-50 transition-colors cursor-pointer select-none whitespace-nowrap ${selectedEntity?.id === item.id ? "bg-blue-50/50" : ""
+                        }`}
                     >
                       <td className="py-2.5 px-3 font-extrabold text-[#0089CF]">{item.entity_id}</td>
                       <td className="py-2.5 px-3 font-extrabold">{item.entity_name}</td>
@@ -411,6 +413,7 @@ export default function EntityListPage() {
                                 : "No entities are registered yet in the system."}
                             </p>
                           </div>
+                          {/* [OLD CODE - COMMENTED OUT AS PER REQUIREMENT]
                           <button
                             onClick={() => setIsRegisterModalOpen(true)}
                             className="mt-1 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#0089CF] hover:bg-[#0072ad] text-white text-[12px] font-extrabold transition-colors cursor-pointer shadow-xs"
@@ -418,6 +421,7 @@ export default function EntityListPage() {
                             <PlusCircle size={14} />
                             <span>Register New Entity</span>
                           </button>
+                          */}
                         </div>
                       </td>
                     </tr>
@@ -447,11 +451,10 @@ export default function EntityListPage() {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-7 h-7 rounded-lg text-[11.5px] font-bold flex items-center justify-center transition-all ${
-                      currentPage === page
+                    className={`w-7 h-7 rounded-lg text-[11.5px] font-bold flex items-center justify-center transition-all ${currentPage === page
                         ? "bg-[#0089CF] text-white shadow-xs"
                         : "border border-[#e3e4ee] hover:bg-neutral-50 text-[#10142d] cursor-pointer"
-                    }`}
+                      }`}
                   >
                     {page}
                   </button>
@@ -656,13 +659,14 @@ export default function EntityListPage() {
 
       </div>
 
-      {/* Register Entity Modal Dialog */}
+      {/* [OLD CODE - COMMENTED OUT AS PER REQUIREMENT: Register Entity removed from Entity List]
       <RegisterEntityModal
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
         onSuccess={handleEntityCreatedSuccess}
         initialName={searchQuery.trim()}
       />
+      */}
     </div>
   );
 }

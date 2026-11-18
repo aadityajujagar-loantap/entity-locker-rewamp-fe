@@ -127,7 +127,7 @@ export default function UserListPage() {
   };
 
   return (
-    <div className="p-3 max-w-[1400px] mx-auto space-y-3 font-manrope animate-fade-in">
+    <div className="p-3  mx-auto space-y-3 font-manrope animate-fade-in">
       {/* Title Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
@@ -204,11 +204,11 @@ export default function UserListPage() {
 
       {/* Main Workspace Table Card */}
       <div className="bg-white border border-[#e3e4ee] rounded-[14px] p-4 shadow-[0_2px_12px_rgba(18,22,46,0.03)] space-y-3">
-        
+
         {/* Filters Bar */}
         <div className="flex flex-wrap gap-2.5 items-center justify-between border-b border-[#e3e4ee] pb-3">
           <div className="flex flex-1 min-w-0 flex-wrap gap-2 items-center">
-            
+
             {/* Search Bar */}
             <div className="relative flex min-w-[260px] flex-1 items-center h-[36px] border border-[#e3e4ee] rounded-[9px] focus-within:border-[#0089CF] bg-white">
               <Search size={14} className="absolute left-3 text-[#5e6272]" />
@@ -422,11 +422,10 @@ export default function UserListPage() {
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`w-7 h-7 rounded-lg text-[11.5px] font-bold flex items-center justify-center transition-all ${
-                    currentPage === page
+                  className={`w-7 h-7 rounded-lg text-[11.5px] font-bold flex items-center justify-center transition-all ${currentPage === page
                       ? "bg-[#0089CF] text-[#fff] shadow-xs"
                       : "border border-[#e3e4ee] hover:bg-neutral-50 text-[#10142d] cursor-pointer"
-                  }`}
+                    }`}
                 >
                   {page}
                 </button>

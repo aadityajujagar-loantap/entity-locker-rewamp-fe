@@ -500,7 +500,7 @@ export default function RequestListPage() {
     summary?.document_request_summary?.download_status_wise?.DOWNLOADED ?? 0;
 
   return (
-    <div className="p-2 max-w-[1400px] mx-auto space-y-2 animate-fade-in">
+    <div className="p-2  mx-auto space-y-2 animate-fade-in">
       {/* Page Title Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -614,9 +614,8 @@ export default function RequestListPage() {
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-2 items-stretch">
         {/* Table Column (75% or 100% width) */}
         <div
-          className={`${
-            selectedRequest ? "xl:col-span-3" : "xl:col-span-4"
-          } h-full space-y-4 bg-white border border-[#e3e4ee] rounded-[16px] p-5 shadow-[0_2px_12px_rgba(18,22,46,0.03)]`}
+          className={`${selectedRequest ? "xl:col-span-3" : "xl:col-span-4"
+            } h-full space-y-4 bg-white border border-[#e3e4ee] rounded-[16px] p-5 shadow-[0_2px_12px_rgba(18,22,46,0.03)]`}
         >
           {/* Filters Bar */}
           <div className="flex flex-wrap gap-3 items-center justify-between border-b border-[#e3e4ee] pb-4">
@@ -710,9 +709,8 @@ export default function RequestListPage() {
                     <tr
                       key={req.consentId}
                       onClick={() => setSelectedRequest(req)}
-                      className={`text-[11.5px] font-semibold text-[#10142d] hover:bg-neutral-50 transition-colors cursor-pointer select-none whitespace-nowrap ${
-                        selectedRequest?.consentId === req.consentId ? "bg-blue-50/50" : ""
-                      }`}
+                      className={`text-[11.5px] font-semibold text-[#10142d] hover:bg-neutral-50 transition-colors cursor-pointer select-none whitespace-nowrap ${selectedRequest?.consentId === req.consentId ? "bg-blue-50/50" : ""
+                        }`}
                     >
                       <td className="py-2.5 px-3 font-extrabold text-[#0089CF]">
                         <div className="flex flex-col">
@@ -754,13 +752,12 @@ export default function RequestListPage() {
                           <button
                             disabled={req.status === "Consent Approved" || req.status === "Expired"}
                             onClick={() => handleCopyOrOpenConsentLink(req)}
-                            className={`p-1.5 rounded-md hover:bg-neutral-100 transition-colors cursor-pointer shrink-0 ${
-                              req.status === "Consent Approved" || req.status === "Expired"
+                            className={`p-1.5 rounded-md hover:bg-neutral-100 transition-colors cursor-pointer shrink-0 ${req.status === "Consent Approved" || req.status === "Expired"
                                 ? "text-neutral-300 pointer-events-none"
                                 : copiedUrlId === req.id
-                                ? "text-green-600 bg-green-50"
-                                : "text-[#5e6272] hover:text-[#0089CF]"
-                            }`}
+                                  ? "text-green-600 bg-green-50"
+                                  : "text-[#5e6272] hover:text-[#0089CF]"
+                              }`}
                             title={
                               req.authorizationUrl
                                 ? copiedUrlId === req.id
@@ -776,11 +773,10 @@ export default function RequestListPage() {
                           <button
                             disabled={req.status !== "Consent Approved"}
                             onClick={() => openDocumentsPreview(req)}
-                            className={`p-1.5 rounded-md hover:bg-neutral-100 transition-colors cursor-pointer shrink-0 ${
-                              req.status !== "Consent Approved"
+                            className={`p-1.5 rounded-md hover:bg-neutral-100 transition-colors cursor-pointer shrink-0 ${req.status !== "Consent Approved"
                                 ? "text-neutral-300 pointer-events-none"
                                 : "text-[#5e6272] hover:text-[#0089CF]"
-                            }`}
+                              }`}
                             title="View & Download Real Documents"
                           >
                             <Download size={15} />
@@ -1120,18 +1116,16 @@ export default function RequestListPage() {
                             key={doc.url}
                             type="button"
                             onClick={() => setSelectedSampleDoc(doc)}
-                            className={`flex w-full gap-2.5 rounded-[10px] border p-2.5 text-left transition-all cursor-pointer ${
-                              isActive
+                            className={`flex w-full gap-2.5 rounded-[10px] border p-2.5 text-left transition-all cursor-pointer ${isActive
                                 ? "border-[#0089CF] bg-[#eef6ff] shadow-sm"
                                 : "border-neutral-200/80 bg-white hover:border-[#0089CF]/40 hover:bg-neutral-50"
-                            }`}
+                              }`}
                           >
                             <div
-                              className={`grid h-9 w-9 shrink-0 place-items-center rounded-[8px] ${
-                                doc.fileKind === "image"
+                              className={`grid h-9 w-9 shrink-0 place-items-center rounded-[8px] ${doc.fileKind === "image"
                                   ? "bg-purple-50 text-purple-600"
                                   : "bg-blue-50 text-[#0089CF]"
-                              }`}
+                                }`}
                             >
                               {doc.fileKind === "image" ? <ImageIcon size={16} /> : <FileText size={16} />}
                             </div>
@@ -1160,16 +1154,14 @@ export default function RequestListPage() {
                             key={doc.id}
                             type="button"
                             onClick={() => loadSingleDocumentContent(doc)}
-                            className={`flex w-full gap-2.5 rounded-[10px] border p-2.5 text-left transition-all cursor-pointer ${
-                              isActive
+                            className={`flex w-full gap-2.5 rounded-[10px] border p-2.5 text-left transition-all cursor-pointer ${isActive
                                 ? "border-[#0089CF] bg-[#eef6ff] shadow-sm"
                                 : "border-neutral-200/80 bg-white hover:border-[#0089CF]/40 hover:bg-neutral-50"
-                            }`}
+                              }`}
                           >
                             <div
-                              className={`grid h-9 w-9 shrink-0 place-items-center rounded-[8px] ${
-                                isPdf ? "bg-red-50 text-red-600" : "bg-purple-50 text-purple-600"
-                              }`}
+                              className={`grid h-9 w-9 shrink-0 place-items-center rounded-[8px] ${isPdf ? "bg-red-50 text-red-600" : "bg-purple-50 text-purple-600"
+                                }`}
                             >
                               {isPdf ? <FileText size={16} /> : <ImageIcon size={16} />}
                             </div>
@@ -1230,10 +1222,9 @@ export default function RequestListPage() {
                           {useSampleFallback
                             ? `${selectedSampleDoc.type} • ${selectedSampleDoc.size}`
                             : selectedDocument
-                            ? `${selectedDocument.doctype || selectedDocument.type || "Official Document"} • Size: ${
-                                selectedDocument.size || "-"
+                              ? `${selectedDocument.doctype || selectedDocument.type || "Official Document"} • Size: ${selectedDocument.size || "-"
                               } • Issuer: ${selectedDocument.issuer || "DigiLocker"}`
-                            : "Click any item on the left to inspect file content."}
+                              : "Click any item on the left to inspect file content."}
                         </p>
                       </div>
                     </div>
@@ -1285,8 +1276,8 @@ export default function RequestListPage() {
                       )
                     ) : documentContent?.base64_content ? (
                       documentContent.mime?.includes("image") ||
-                      documentContent.file_extension === "jpg" ||
-                      documentContent.file_extension === "png" ? (
+                        documentContent.file_extension === "jpg" ||
+                        documentContent.file_extension === "png" ? (
                         <div className="flex h-full items-center justify-center overflow-auto p-6">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img

@@ -278,24 +278,24 @@ export default function DocumentListPage() {
 
     const current = selectedDoc
       ? {
-          docName: selectedDoc.docName,
-          docType: selectedDoc.docType,
-          fileSize: selectedDoc.fileSize,
-          status: selectedDoc.hmacVerified ? "Verified" : selectedDoc.status,
-        }
+        docName: selectedDoc.docName,
+        docType: selectedDoc.docType,
+        fileSize: selectedDoc.fileSize,
+        status: selectedDoc.hmacVerified ? "Verified" : selectedDoc.status,
+      }
       : {
-          docName: MOCK_DOCUMENTS[0].docName,
-          docType: MOCK_DOCUMENTS[0].docType,
-          fileSize: MOCK_DOCUMENTS[0].fileSize,
-          status: "Verified",
-        };
+        docName: MOCK_DOCUMENTS[0].docName,
+        docType: MOCK_DOCUMENTS[0].docType,
+        fileSize: MOCK_DOCUMENTS[0].fileSize,
+        status: "Verified",
+      };
 
     return [current, ...fallbackDocs.filter((doc) => doc.docName !== current.docName)].slice(0, 6);
   }, [selectedDoc]);
 
   return (
-    <div className="p-2 max-w-[1400px] mx-auto space-y-2 animate-fade-in">
-      
+    <div className="p-2  mx-auto space-y-2 animate-fade-in">
+
       {/* Page Title */}
       <div>
         <h2 className="text-[20px] font-extrabold text-[#10142d] tracking-tight">
@@ -331,14 +331,14 @@ export default function DocumentListPage() {
 
       {/* ══════════════ SPLIT WORKSPACE ══════════════ */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-2 items-start">
-        
+
         {/* Table Area */}
         <div className={`${selectedDoc ? "xl:col-span-3" : "xl:col-span-4"} space-y-4 bg-white border border-[#e3e4ee] rounded-[16px] p-5 shadow-[0_2px_12px_rgba(18,22,46,0.03)]`}>
-          
+
           {/* Filters */}
           <div className="flex flex-wrap gap-3 items-center justify-between">
             <div className="flex flex-wrap gap-2.5 items-center">
-              
+
               <div className="flex items-center gap-2 px-3.5 h-[38px] border border-[#e3e4ee] rounded-[10px] text-[13px] font-bold text-[#10142d] bg-white cursor-pointer">
                 <span>01/05/2024 - 31/05/2024</span>
                 <Calendar size={15} className="text-text-mid" />
@@ -416,9 +416,8 @@ export default function DocumentListPage() {
                   <tr
                     key={item.id + item.docName + idx}
                     onClick={() => setSelectedDoc(item)}
-                    className={`text-[12.5px] font-semibold text-[#10142d] hover:bg-neutral-50 transition-colors cursor-pointer select-none ${
-                      selectedDoc?.docName === item.docName && selectedDoc?.id === item.id ? "bg-blue-50/50" : ""
-                    }`}
+                    className={`text-[12.5px] font-semibold text-[#10142d] hover:bg-neutral-50 transition-colors cursor-pointer select-none ${selectedDoc?.docName === item.docName && selectedDoc?.id === item.id ? "bg-blue-50/50" : ""
+                      }`}
                   >
                     <td className="py-3.5 px-4 font-extrabold text-[#1c4dbf]">{item.id}</td>
                     <td className="py-3.5 px-4 text-[13px] font-extrabold">{item.customerName}</td>
@@ -441,13 +440,12 @@ export default function DocumentListPage() {
                     <td className="py-3.5 px-4 text-[#5e6272]">{item.receivedOn}</td>
                     <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-1">
-                        
+
                         <button
                           disabled={item.status !== "Available" && item.status !== "Expired"}
                           onClick={() => setSelectedDoc(item)}
-                          className={`p-1.5 rounded-md hover:bg-neutral-100 transition-colors cursor-pointer shrink-0 ${
-                            item.status !== "Available" && item.status !== "Expired" ? "text-neutral-300 pointer-events-none" : "text-[#5e6272] hover:text-[#1c4dbf]"
-                          }`}
+                          className={`p-1.5 rounded-md hover:bg-neutral-100 transition-colors cursor-pointer shrink-0 ${item.status !== "Available" && item.status !== "Expired" ? "text-neutral-300 pointer-events-none" : "text-[#5e6272] hover:text-[#1c4dbf]"
+                            }`}
                           title="View Details"
                         >
                           <Eye size={15} />
@@ -456,9 +454,8 @@ export default function DocumentListPage() {
                         <button
                           disabled={item.status !== "Available"}
                           onClick={() => alert(`Downloading ${item.docName}`)}
-                          className={`p-1.5 rounded-md hover:bg-neutral-100 transition-colors cursor-pointer shrink-0 ${
-                            item.status !== "Available" ? "text-neutral-300 pointer-events-none" : "text-[#5e6272] hover:text-[#1c4dbf]"
-                          }`}
+                          className={`p-1.5 rounded-md hover:bg-neutral-100 transition-colors cursor-pointer shrink-0 ${item.status !== "Available" ? "text-neutral-300 pointer-events-none" : "text-[#5e6272] hover:text-[#1c4dbf]"
+                            }`}
                           title="Download File"
                         >
                           <Download size={15} />
@@ -496,7 +493,7 @@ export default function DocumentListPage() {
         {/* Details Panel Drawer */}
         {selectedDoc && (
           <div className="xl:col-span-1 bg-white border border-[#e3e4ee] rounded-[16px] p-5 shadow-[0_2px_12px_rgba(18,22,46,0.03)] space-y-5 animate-slide-in-right relative">
-            
+
             <button
               onClick={() => setSelectedDoc(null)}
               className="absolute top-4 right-4 p-1 rounded-md text-text-mid hover:text-[#10142d] hover:bg-neutral-100 transition-colors cursor-pointer"
@@ -597,7 +594,7 @@ export default function DocumentListPage() {
             <div className="space-y-4">
               <h5 className="text-[12px] font-extrabold text-text-mid uppercase tracking-wide">Document Timeline</h5>
               <div className="relative pl-6 space-y-4.5">
-                
+
                 {/* Vertical line */}
                 <div className="absolute top-2 bottom-2 left-2.5 w-[1.5px] bg-[#e3e4ee]" />
 
@@ -665,11 +662,10 @@ export default function DocumentListPage() {
                           key={doc.docName}
                           type="button"
                           onClick={() => setPreviewDocName(doc.docName)}
-                          className={`flex w-full gap-3 rounded-[8px] border p-3 text-left transition-colors ${
-                            isActive
+                          className={`flex w-full gap-3 rounded-[8px] border p-3 text-left transition-colors ${isActive
                               ? "border-[#0089CF] bg-[#eef6ff]"
                               : "border-transparent hover:border-[#e3e4ee] hover:bg-neutral-50"
-                          }`}
+                            }`}
                         >
                           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[7px] bg-red-50 text-red-500">
                             <FileText size={18} />
@@ -677,9 +673,8 @@ export default function DocumentListPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
                               <span className="truncate text-[11.5px] font-extrabold text-[#10142d]">{doc.docName}</span>
-                              <span className={`rounded-[5px] px-1.5 py-0.5 text-[9px] font-extrabold ${
-                                doc.status === "Pending" ? "bg-orange-50 text-orange-700" : "bg-green-50 text-green-700"
-                              }`}>
+                              <span className={`rounded-[5px] px-1.5 py-0.5 text-[9px] font-extrabold ${doc.status === "Pending" ? "bg-orange-50 text-orange-700" : "bg-green-50 text-green-700"
+                                }`}>
                                 {doc.status}
                               </span>
                             </div>

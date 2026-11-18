@@ -306,7 +306,7 @@ export default function ApiCatalogPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-2 p-2 animate-fade-in">
+    <div className="mx-auto  space-y-2 p-2 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -391,11 +391,10 @@ export default function ApiCatalogPage() {
             <button
               key={tab.id}
               onClick={() => setSelectedCategory(tab.id)}
-              className={`h-[36px] border-b-2 px-1 text-[13px] font-extrabold whitespace-nowrap transition-colors cursor-pointer ${
-                isActive
+              className={`h-[36px] border-b-2 px-1 text-[13px] font-extrabold whitespace-nowrap transition-colors cursor-pointer ${isActive
                   ? "border-[#0089CF] text-[#0089CF]"
                   : "border-transparent text-[#5e6272] hover:text-[#10142d]"
-              }`}
+                }`}
             >
               {tab.label} ({tab.count})
             </button>
@@ -405,7 +404,7 @@ export default function ApiCatalogPage() {
 
       {/* Main Split Layout */}
       <div className={`grid gap-2 transition-all duration-300 ${isSidebarOpen ? "grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]" : "grid-cols-1"}`}>
-        
+
         {/* Left Column - List */}
         <div className="space-y-2">
           <div className="overflow-hidden rounded-[16px] border border-[#e3e4ee] bg-white shadow-[0_2px_12px_rgba(18,22,46,0.02)]">
@@ -431,9 +430,8 @@ export default function ApiCatalogPage() {
                         <tr
                           key={api.id}
                           onClick={() => handleApiSelect(api.id)}
-                          className={`group cursor-pointer transition-all hover:bg-slate-50/75 ${
-                            isSelected ? "bg-[#f0f7ff] hover:bg-[#f0f7ff]" : ""
-                          }`}
+                          className={`group cursor-pointer transition-all hover:bg-slate-50/75 ${isSelected ? "bg-[#f0f7ff] hover:bg-[#f0f7ff]" : ""
+                            }`}
                           style={{
                             borderLeft: isSelected ? "3px solid #0089CF" : "3px solid transparent",
                           }}
@@ -608,11 +606,10 @@ export default function ApiCatalogPage() {
                   <button
                     key={tab}
                     onClick={() => setSidebarActiveTab(tab)}
-                    className={`h-[34px] border-b-2 text-[12px] font-extrabold whitespace-nowrap transition-colors cursor-pointer ${
-                      isActive
+                    className={`h-[34px] border-b-2 text-[12px] font-extrabold whitespace-nowrap transition-colors cursor-pointer ${isActive
                         ? "border-[#0089CF] text-[#0089CF]"
                         : "border-transparent text-[#5e6272] hover:text-[#10142d]"
-                    }`}
+                      }`}
                   >
                     {tab}
                   </button>

@@ -1,7 +1,11 @@
 import { getPortalApiBaseUrl } from "@/lib/auth";
 
 export interface GenerateAuthUrlParams {
-  entity_id: string;
+  entity_id?: string;
+  entity_name?: string;
+  entity_type?: string;
+  entity_mobile?: string;
+  entity_email?: string;
   dl_flow?: string;
   acr?: string;
   purpose?: string;
@@ -51,6 +55,18 @@ export async function generateAuthorizationUrl(
 
   if (params.entity_id) {
     queryParts.push(`entity_id=${encodeURIComponent(params.entity_id)}`);
+  }
+  if (params.entity_name) {
+    queryParts.push(`entity_name=${encodeURIComponent(params.entity_name)}`);
+  }
+  if (params.entity_type) {
+    queryParts.push(`entity_type=${encodeURIComponent(params.entity_type)}`);
+  }
+  if (params.entity_mobile) {
+    queryParts.push(`entity_mobile=${encodeURIComponent(params.entity_mobile)}`);
+  }
+  if (params.entity_email) {
+    queryParts.push(`entity_email=${encodeURIComponent(params.entity_email)}`);
   }
   if (params.dl_flow) {
     queryParts.push(`dl_flow=${encodeURIComponent(params.dl_flow)}`);

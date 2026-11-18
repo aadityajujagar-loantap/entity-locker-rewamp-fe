@@ -19,9 +19,18 @@ import {
   Hash,
 } from "lucide-react";
 import { getAuthSession } from "@/lib/auth";
-import { fetchEntityDetails } from "@/services/EntityListPage";
+import { fetchEntityDetails, fetchEntityList, EntityItem } from "@/services/EntityListPage";
 import { generateAuthorizationUrl, GenerateAuthUrlApiError } from "@/services/createRequest";
 import { sendConsentNotificationEmail } from "@/services/notificationService";
+
+function generateRandomEntityId(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `ENT-${code}`;
+}
 
 function CreateRequestFormContent() {
   const searchParams = useSearchParams();
@@ -35,6 +44,11 @@ function CreateRequestFormContent() {
   const [entityMobile, setEntityMobile] = useState<string>("");
   const [doi, setDoi] = useState<string>("");
   const [entityLockerId, setEntityLockerId] = useState<string>("");
+
+  // Existing entity auto-detection states
+  const [knownEntities, setKnownEntities] = useState<EntityItem[]>([]);
+  const [isExistingEntity, setIsExistingEntity] = useState<boolean>(false);
+  const [existingEntityMatchedBy, setExistingEntityMatchedBy] = useState<string | null>(null);
 
   // Request Details Form States
   const [purpose, setPurpose] = useState<string>("kyc");
@@ -79,6 +93,67 @@ function CreateRequestFormContent() {
       setLoadingEntity(false);
     }
   }, []);
+
+  // [NEW CODE]: Auto-generate Entity ID on mount and pre-fetch known entities for matching
+  useEffect(() => {
+    if (!queryEntityId) {
+      setEntityId(generateRandomEntityId());
+    }
+
+    const session = getAuthSession();
+    if (session?.accessToken) {
+      fetchEntityList(session.accessToken)
+        .then((list) => setKnownEntities(list))
+        .catch((err) => console.warn("Could not pre-fetch entity list:", err));
+    }
+  }, [queryEntityId]);
+
+  // [NEW CODE]: Auto-detect if entered mobile, email or ID belongs to an existing entity
+  const checkExistingEntity = useCallback(
+    (mobileVal: string, emailVal: string, currentIdVal?: string) => {
+      const cleanMobile = mobileVal.replace(/\D/g, "").slice(0, 10);
+      const cleanEmail = emailVal.trim().toLowerCase();
+      const cleanId = (currentIdVal || "").trim().toUpperCase();
+
+      if (knownEntities.length === 0) return;
+
+      const found = knownEntities.find((ent) => {
+        if (cleanMobile && ent.entity_mobile && ent.entity_mobile.replace(/\D/g, "") === cleanMobile) {
+          return true;
+        }
+        if (cleanEmail && ent.entity_email && ent.entity_email.trim().toLowerCase() === cleanEmail) {
+          return true;
+        }
+        if (cleanId && ent.entity_id && ent.entity_id.toUpperCase() === cleanId) {
+          return true;
+        }
+        return false;
+      });
+
+      if (found) {
+        setIsExistingEntity(true);
+        setEntityId(found.entity_id);
+        if (found.entity_name) setEntityName(found.entity_name);
+        if (found.entity_type) setEntityType(found.entity_type);
+        if (found.entity_mobile && !cleanMobile) setEntityMobile(found.entity_mobile);
+        if (found.entity_email && !cleanEmail) setEntityEmail(found.entity_email);
+        if (found.doi) setDoi(found.doi);
+        if (found.entitylockerid) setEntityLockerId(found.entitylockerid);
+
+        let matchedVia = "ID";
+        if (cleanMobile && found.entity_mobile && found.entity_mobile.replace(/\D/g, "") === cleanMobile) {
+          matchedVia = `Mobile (${cleanMobile})`;
+        } else if (cleanEmail && found.entity_email && found.entity_email.trim().toLowerCase() === cleanEmail) {
+          matchedVia = `Email (${cleanEmail})`;
+        }
+        setExistingEntityMatchedBy(matchedVia);
+      } else {
+        setIsExistingEntity(false);
+        setExistingEntityMatchedBy(null);
+      }
+    },
+    [knownEntities]
+  );
 
   useEffect(() => {
     if (queryEntityId) {
@@ -131,9 +206,28 @@ function CreateRequestFormContent() {
       const days = daysMap[validity] ?? 7;
       const consentValidTillTimestamp = Math.floor(Date.now() / 1000) + days * 86400;
 
+      /*
+      // [OLD CODE - COMMENTED OUT AS PER REQUIREMENT]
       const response = await generateAuthorizationUrl(
         {
           entity_id: entityId.trim(),
+          purpose: mappedPurpose,
+          doc_category: docCategory,
+          notes: notes.trim() || undefined,
+          consent_valid_till: consentValidTillTimestamp,
+        },
+        session.accessToken
+      );
+      */
+
+      // [NEW CODE]: Pass entity details so entity is auto-registered or linked, enabling many requests per entity
+      const response = await generateAuthorizationUrl(
+        {
+          entity_id: entityId.trim(),
+          entity_name: entityName.trim() || undefined,
+          entity_type: entityType,
+          entity_mobile: entityMobile.trim() || undefined,
+          entity_email: entityEmail.trim() || undefined,
           purpose: mappedPurpose,
           doc_category: docCategory,
           notes: notes.trim() || undefined,
@@ -191,7 +285,7 @@ function CreateRequestFormContent() {
   };
 
   return (
-    <div className="p-2 max-w-[1400px] mx-auto font-manrope animate-fade-in space-y-4">
+    <div className="p-2  mx-auto font-manrope animate-fade-in space-y-4">
       {/* Page Header */}
       <div>
         <h2 className="text-[18px] font-extrabold text-[#0089CF] tracking-tight">
@@ -242,7 +336,34 @@ function CreateRequestFormContent() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Entity ID */}
+
+                {/* [NEW CODE]: Banner if an existing entity is matched via Mobile, Email or ID */}
+                {isExistingEntity && (
+                  <div className="col-span-full mb-1 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                      <span className="text-[12px] font-bold text-emerald-800">
+                        Existing Entity Identified via {existingEntityMatchedBy}: <strong>{entityName || entityId}</strong> ({entityId}). A new Consent Request will be created for this entity.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsExistingEntity(false);
+                        setExistingEntityMatchedBy(null);
+                        setEntityId(generateRandomEntityId());
+                        setEntityName("");
+                        setEntityMobile("");
+                        setEntityEmail("");
+                      }}
+                      className="text-[11px] font-extrabold text-emerald-700 hover:text-emerald-900 underline ml-2 shrink-0 cursor-pointer"
+                    >
+                      Clear / Register New
+                    </button>
+                  </div>
+                )}
+
+                {/* [OLD CODE - COMMENTED OUT AS PER REQUIREMENT]
                 <div className="flex flex-col">
                   <label htmlFor="entityId" className="text-[12px] font-bold text-[#10142d] mb-1.5 flex items-center gap-1">
                     <Hash size={13} className="text-[#0089CF]" />
@@ -258,6 +379,55 @@ function CreateRequestFormContent() {
                     disabled={submitting}
                     className="h-[38px] px-3 border border-[#e3e4ee] rounded-[10px] text-[13px] font-semibold text-[#10142d] placeholder-[#9094a8] outline-none focus:border-[#0089CF] focus:ring-1 focus:ring-[#0089CF]/25 transition-all bg-white disabled:bg-neutral-100"
                   />
+                </div>
+                */}
+
+                {/* [NEW CODE]: Auto-generated Entity ID with indicator badge and refresh button */}
+                <div className="flex flex-col">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label htmlFor="entityId" className="text-[12px] font-bold text-[#10142d] flex items-center gap-1">
+                      <Hash size={13} className="text-[#0089CF]" />
+                      Entity ID <span className="text-red-500">*</span>
+                    </label>
+                    {isExistingEntity ? (
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Existing Entity
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-50 text-[#0089CF] border border-blue-200">
+                        Auto-Generated
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative flex items-center">
+                    <input
+                      id="entityId"
+                      type="text"
+                      required
+                      value={entityId}
+                      onChange={(e) => {
+                        const val = e.target.value.toUpperCase();
+                        setEntityId(val);
+                        checkExistingEntity(entityMobile, entityEmail, val);
+                      }}
+                      disabled={submitting}
+                      placeholder="Auto-generated (e.g. ENT-ABC123)"
+                      className={`w-full h-[38px] px-3 font-mono font-bold text-[13px] rounded-[10px] border transition-all outline-none ${isExistingEntity
+                          ? "border-emerald-300 bg-emerald-50/40 text-emerald-800 focus:border-emerald-500"
+                          : "border-[#e3e4ee] bg-neutral-50/70 text-[#10142d] focus:border-[#0089CF]"
+                        }`}
+                    />
+                    {!isExistingEntity && (
+                      <button
+                        type="button"
+                        onClick={() => setEntityId(generateRandomEntityId())}
+                        title="Generate another Entity ID"
+                        className="absolute right-2 p-1 text-[#9094a8] hover:text-[#0089CF] transition-colors cursor-pointer"
+                      >
+                        <RefreshCw size={13} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Entity Name */}
@@ -313,7 +483,11 @@ function CreateRequestFormContent() {
                       required
                       placeholder="Enter mobile number"
                       value={entityMobile}
-                      onChange={(e) => setEntityMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setEntityMobile(val);
+                        checkExistingEntity(val, entityEmail, entityId);
+                      }}
                       disabled={submitting}
                       className="flex-1 px-3 border border-[#e3e4ee] rounded-[10px] text-[13px] font-semibold text-[#10142d] placeholder-[#9094a8] outline-none focus:border-[#0089CF] focus:ring-1 focus:ring-[#0089CF]/25 transition-all bg-white disabled:bg-neutral-100"
                     />
@@ -331,7 +505,11 @@ function CreateRequestFormContent() {
                     type="email"
                     placeholder="Enter email address"
                     value={entityEmail}
-                    onChange={(e) => setEntityEmail(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEntityEmail(val);
+                      checkExistingEntity(entityMobile, val, entityId);
+                    }}
                     disabled={submitting}
                     className="h-[38px] px-3 border border-[#e3e4ee] rounded-[10px] text-[13px] font-semibold text-[#10142d] placeholder-[#9094a8] outline-none focus:border-[#0089CF] focus:ring-1 focus:ring-[#0089CF]/25 transition-all bg-white disabled:bg-neutral-100"
                   />

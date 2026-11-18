@@ -155,7 +155,7 @@ export default function ConsentDetails() {
   const badgeStyle = getStatusBadge(data?.status);
 
   return (
-    <div className="p-4 max-w-[1200px] mx-auto space-y-4 font-manrope animate-fade-in">
+    <div className="p-4 mx-auto space-y-4 font-manrope animate-fade-in">
       {/* Top Header Actions */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
