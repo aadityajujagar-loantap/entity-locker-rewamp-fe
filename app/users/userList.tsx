@@ -126,6 +126,65 @@ export default function UserListPage() {
     }
   };
 
+  const handleExportCsv = () => {
+    if (!filteredUsers || filteredUsers.length === 0) {
+      alert("No user records available to export.");
+      return;
+    }
+
+    const headers = [
+      "User ID",
+      "Employee ID",
+      "PF Number",
+      "Full Name",
+      "Email Address",
+      "Mobile",
+      "Branch Code",
+      "Branch Name",
+      "Roles",
+      "Status",
+      "Last Login",
+      "Created At",
+    ];
+
+    const escapeCsv = (val?: string | number | null) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const csvRows = [
+      headers.join(","),
+      ...filteredUsers.map((item) =>
+        [
+          escapeCsv(item.id),
+          escapeCsv(item.employee_id || "-"),
+          escapeCsv(item.pf_number || "-"),
+          escapeCsv(item.name || "-"),
+          escapeCsv(item.email || "-"),
+          escapeCsv(item.mobile || "-"),
+          escapeCsv(item.branch_code || "-"),
+          escapeCsv(item.branch_name || "-"),
+          escapeCsv((item.roles || []).join("; ") || "-"),
+          escapeCsv(item.status || "-"),
+          escapeCsv(formatDate(item.last_login_at)),
+          escapeCsv(formatDate(item.created_at)),
+        ].join(",")
+      ),
+    ];
+
+    const blob = new Blob([csvRows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateStr = new Date().toISOString().split("T")[0];
+    link.href = url;
+    link.setAttribute("download", `User_List_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-3  mx-auto space-y-3 font-manrope animate-fade-in">
       {/* Title Bar */}
@@ -242,7 +301,11 @@ export default function UserListPage() {
               <Plus size={14} />
               <span>Create User</span>
             </button>
-            <button className="flex items-center gap-1.5 px-3 h-[36px] border border-[#e3e4ee] rounded-[9px] text-[12px] font-bold text-[#10142d] hover:bg-neutral-50 cursor-pointer bg-white">
+            <button
+              onClick={handleExportCsv}
+              className="flex items-center gap-1.5 px-3 h-[36px] border border-[#e3e4ee] rounded-[9px] text-[12px] font-bold text-[#10142d] hover:bg-neutral-50 cursor-pointer bg-white transition-colors"
+              title="Export User List as CSV"
+            >
               <DownloadCloud size={13} />
               <span>Export</span>
             </button>
@@ -279,7 +342,7 @@ export default function UserListPage() {
                 <tr className="border-b border-[#e3e4ee] text-[10.5px] font-bold text-[#5e6272] uppercase text-left whitespace-nowrap">
                   <th className="py-2.5 px-3">Employee ID</th>
                   <th className="py-2.5 px-3">Name</th>
-                  <th className="py-2.5 px-3">PF Number</th>
+                  {/* <th className="py-2.5 px-3">PF Number</th> */}
                   <th className="py-2.5 px-3">Email &amp; Mobile</th>
                   <th className="py-2.5 px-3">Branch</th>
                   <th className="py-2.5 px-3">Roles</th>
@@ -304,9 +367,9 @@ export default function UserListPage() {
                     </td>
 
                     {/* PF Number */}
-                    <td className="py-2.5 px-3 text-[#5e6272]">
+                    {/* <td className="py-2.5 px-3 text-[#5e6272]">
                       {item.pf_number || "-"}
-                    </td>
+                    </td> */}
 
                     {/* Email & Mobile */}
                     <td className="py-2.5 px-3 text-[#5e6272]">
@@ -423,8 +486,8 @@ export default function UserListPage() {
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`w-7 h-7 rounded-lg text-[11.5px] font-bold flex items-center justify-center transition-all ${currentPage === page
-                      ? "bg-[#0089CF] text-[#fff] shadow-xs"
-                      : "border border-[#e3e4ee] hover:bg-neutral-50 text-[#10142d] cursor-pointer"
+                    ? "bg-[#0089CF] text-[#fff] shadow-xs"
+                    : "border border-[#e3e4ee] hover:bg-neutral-50 text-[#10142d] cursor-pointer"
                     }`}
                 >
                   {page}

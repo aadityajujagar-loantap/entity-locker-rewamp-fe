@@ -362,3 +362,63 @@ function isNullableString(value: unknown): value is string | null {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
+
+export async function requestForgotPassword(login: string): Promise<{ message: string; masked_email?: string }> {
+  const response = await fetch(`${getPortalApiBaseUrl()}/auth/forgot-password`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ login }),
+    cache: "no-store",
+  });
+
+  const payload = await readJson(response);
+
+  if (!response.ok) {
+    throw new AuthApiError(
+      getApiErrorMessage(payload, "Unable to request password reset."),
+      getStatusCode(payload, response.status),
+      getValidationErrors(payload)
+    );
+  }
+
+  const p = payload as Record<string, unknown>;
+  const msg = (p?.message as string) || "Password reset OTP sent to your email successfully.";
+  const resData = (p?.responseData as Record<string, unknown>) || {};
+  return {
+    message: msg,
+    masked_email: resData?.masked_email as string | undefined,
+  };
+}
+
+export async function resetUserPassword(params: {
+  login: string;
+  otp: string;
+  password: string;
+  password_confirmation: string;
+}): Promise<string> {
+  const response = await fetch(`${getPortalApiBaseUrl()}/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(params),
+    cache: "no-store",
+  });
+
+  const payload = await readJson(response);
+
+  if (!response.ok) {
+    throw new AuthApiError(
+      getApiErrorMessage(payload, "Unable to reset password."),
+      getStatusCode(payload, response.status),
+      getValidationErrors(payload)
+    );
+  }
+
+  const p = payload as Record<string, unknown>;
+  return (p?.message as string) || "Password reset successfully.";
+}

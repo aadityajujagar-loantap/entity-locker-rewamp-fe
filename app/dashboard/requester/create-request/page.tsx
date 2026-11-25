@@ -405,6 +405,7 @@ function CreateRequestFormContent() {
                       type="text"
                       required
                       value={entityId}
+                      readOnly
                       onChange={(e) => {
                         const val = e.target.value.toUpperCase();
                         setEntityId(val);
@@ -413,8 +414,8 @@ function CreateRequestFormContent() {
                       disabled={submitting}
                       placeholder="Auto-generated (e.g. ENT-ABC123)"
                       className={`w-full h-[38px] px-3 font-mono font-bold text-[13px] rounded-[10px] border transition-all outline-none ${isExistingEntity
-                          ? "border-emerald-300 bg-emerald-50/40 text-emerald-800 focus:border-emerald-500"
-                          : "border-[#e3e4ee] bg-neutral-50/70 text-[#10142d] focus:border-[#0089CF]"
+                        ? "border-emerald-300 bg-emerald-50/40 text-emerald-800 focus:border-emerald-500"
+                        : "border-[#e3e4ee] bg-neutral-50/70 text-[#10142d] focus:border-[#0089CF]"
                         }`}
                     />
                     {!isExistingEntity && (

@@ -68,7 +68,7 @@ export default function CreateUserPage() {
         },
         body: JSON.stringify({
           employee_id: formData.employee_id,
-          pf_number: formData.pf_number,
+          pf_number: formData.employee_id,
           name: formData.name,
           email: formData.email,
           mobile: formData.mobile || null,
@@ -106,7 +106,7 @@ export default function CreateUserPage() {
   };
 
   return (
-    <div className="p-4 max-w-[800px] mx-auto space-y-4 font-manrope animate-fade-in">
+    <div className="p-4 mx-auto space-y-4 font-manrope animate-fade-in">
       {/* Header Bar */}
       <div className="flex items-center justify-between">
         <button
@@ -161,7 +161,7 @@ export default function CreateUserPage() {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="block font-bold text-[#10142d] mb-1">PF Number *</label>
               <input
                 type="text"
@@ -172,7 +172,7 @@ export default function CreateUserPage() {
                 placeholder="e.g. PF-1002"
                 className="w-full px-3 py-2 rounded-lg bg-neutral-50 border border-[#e3e4ee] outline-none focus:border-[#0089CF] focus:bg-white text-[12.5px]"
               />
-            </div>
+            </div> */}
 
             <div>
               <label className="block font-bold text-[#10142d] mb-1">Full Name *</label>
@@ -203,7 +203,7 @@ export default function CreateUserPage() {
             <div>
               <label className="block font-bold text-[#10142d] mb-1">Mobile Number</label>
               <input
-                type="text"
+                type="tel"
                 name="mobile"
                 value={formData.mobile}
                 onChange={handleChange}

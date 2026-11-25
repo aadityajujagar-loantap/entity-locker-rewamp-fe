@@ -167,6 +167,47 @@ export async function fetchDocumentContent(
     throw new DocumentApiError("Document content not found or invalid format returned.");
   }
 
-  return apiRes.responseData;
+  const data = apiRes.responseData;
+  data.mime = normalizeMimeType(data.mime, data.base64_content, "application/pdf");
+  return data;
+}
+
+/**
+ * Normalizes raw MIME strings (e.g. '["application\/xml", "application\/pdf"]' or messy types)
+ * into a single valid RFC MIME string. Detects magic bytes from Base64 content if needed.
+ */
+export function normalizeMimeType(
+  rawMime?: string | null,
+  base64Content?: string | null,
+  fallback = "application/pdf"
+): string {
+  // 1. Inspect Base64 magic bytes if available
+  if (base64Content) {
+    const trimmed = base64Content.trim();
+    if (trimmed.startsWith("JVBER")) return "application/pdf"; // %PDF-
+    if (trimmed.startsWith("/9j/")) return "image/jpeg";
+    if (trimmed.startsWith("iVBOR")) return "image/png";
+    if (trimmed.startsWith("PD94b") || trimmed.startsWith("77u/PD94b")) return "application/xml";
+  }
+
+  if (!rawMime) return fallback;
+
+  let cleaned = String(rawMime).trim();
+
+  // If JSON array string e.g. ["application\/xml", "application\/pdf"]
+  if (cleaned.startsWith("[") || cleaned.startsWith("{") || cleaned.includes(",")) {
+    if (cleaned.toLowerCase().includes("pdf")) return "application/pdf";
+    if (cleaned.toLowerCase().includes("jpeg") || cleaned.toLowerCase().includes("jpg")) return "image/jpeg";
+    if (cleaned.toLowerCase().includes("png")) return "image/png";
+    if (cleaned.toLowerCase().includes("xml")) return "application/xml";
+  }
+
+  // Remove surrounding quotes, backslashes, brackets
+  cleaned = cleaned.replace(/["'[\]\\]/g, "").trim();
+  if (cleaned.includes("/")) {
+    return cleaned.split(",")[0].trim();
+  }
+
+  return fallback;
 }
 

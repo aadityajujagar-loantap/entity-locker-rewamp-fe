@@ -173,16 +173,69 @@ export default function EntityListPage() {
   const getConsentStatusBadge = (status?: string | null) => {
     switch (status?.toLowerCase()) {
       case "authorized":
+      case "approved":
         return "bg-emerald-50 text-emerald-700 border border-emerald-200";
       case "pending":
         return "bg-amber-50 text-amber-700 border border-amber-200";
       case "failed":
+      case "rejected":
         return "bg-red-50 text-red-700 border border-red-200";
       case "expired":
         return "bg-neutral-100 text-neutral-600 border border-neutral-200";
       default:
         return "bg-neutral-100 text-neutral-500 border border-neutral-200";
     }
+  };
+
+  const handleExportCsv = () => {
+    if (!filteredEntities || filteredEntities.length === 0) {
+      alert("No entity records available to export.");
+      return;
+    }
+
+    const headers = [
+      "Entity ID",
+      "Entity Name",
+      "Entity Type",
+      "Email",
+      "Mobile",
+      "Entity Status",
+      "Consent Status",
+      "Registered Date",
+    ];
+
+    const escapeCsv = (val?: string | number | null) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const csvRows = [
+      headers.join(","),
+      ...filteredEntities.map((item) =>
+        [
+          escapeCsv(item.entity_id),
+          escapeCsv(item.entity_name),
+          escapeCsv(item.entity_type),
+          escapeCsv(item.entity_email || "-"),
+          escapeCsv(item.entity_mobile || "-"),
+          escapeCsv(item.status),
+          escapeCsv(item.consent_details?.status || item.consent_status || "-"),
+          escapeCsv(formatDate(item.created_at)),
+        ].join(",")
+      ),
+    ];
+
+    const blob = new Blob([csvRows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateStr = new Date().toISOString().split("T")[0];
+    link.href = url;
+    link.setAttribute("download", `Entity_List_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -220,7 +273,7 @@ export default function EntityListPage() {
       </div>
 
       {/* Metrics Header Panel */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
         <div className="bg-white border border-[#e3e4ee] rounded-[14px] p-3.5 flex items-center gap-3 shadow-[0_2px_8px_rgba(18,22,46,0.015)]">
           <div className="w-9 h-9 rounded-[9px] bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <Building2 size={17} />
@@ -251,7 +304,7 @@ export default function EntityListPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-[#e3e4ee] rounded-[14px] p-3.5 flex items-center gap-3 shadow-[0_2px_8px_rgba(18,22,46,0.015)]">
+        {/* <div className="bg-white border border-[#e3e4ee] rounded-[14px] p-3.5 flex items-center gap-3 shadow-[0_2px_8px_rgba(18,22,46,0.015)]">
           <div className="w-9 h-9 rounded-[9px] bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0">
             <ShieldCheck size={17} />
           </div>
@@ -259,7 +312,7 @@ export default function EntityListPage() {
             <span className="text-[10px] font-bold text-[#5e6272] uppercase tracking-wide">Verified</span>
             <span className="text-[19px] font-extrabold text-[#10142d] mt-0.5 leading-none">{verifiedCount}</span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Main Workspace Split Grid */}
@@ -319,7 +372,11 @@ export default function EntityListPage() {
                 <span>Register Entity</span>
               </button>
               */}
-              <button className="flex items-center gap-1.5 px-3 h-[36px] border border-[#e3e4ee] rounded-[9px] text-[12px] font-bold text-[#10142d] hover:bg-neutral-50 cursor-pointer bg-white">
+              <button
+                onClick={handleExportCsv}
+                className="flex items-center gap-1.5 px-3 h-[36px] border border-[#e3e4ee] rounded-[9px] text-[12px] font-bold text-[#10142d] hover:bg-neutral-50 cursor-pointer bg-white transition-colors"
+                title="Export Entity List as CSV"
+              >
                 <DownloadCloud size={13} />
                 <span>Export</span>
               </button>
@@ -452,8 +509,8 @@ export default function EntityListPage() {
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     className={`w-7 h-7 rounded-lg text-[11.5px] font-bold flex items-center justify-center transition-all ${currentPage === page
-                        ? "bg-[#0089CF] text-white shadow-xs"
-                        : "border border-[#e3e4ee] hover:bg-neutral-50 text-[#10142d] cursor-pointer"
+                      ? "bg-[#0089CF] text-white shadow-xs"
+                      : "border border-[#e3e4ee] hover:bg-neutral-50 text-[#10142d] cursor-pointer"
                       }`}
                   >
                     {page}

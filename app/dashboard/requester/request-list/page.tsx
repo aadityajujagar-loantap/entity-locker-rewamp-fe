@@ -21,6 +21,8 @@ import {
   Check,
   Image as ImageIcon,
   FileQuestion,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { getAuthSession } from "@/lib/auth";
 import {
@@ -32,12 +34,14 @@ import {
 import {
   fetchPortalDocumentList,
   fetchDocumentContent,
+  normalizeMimeType,
   PortalDocumentItem,
   DocumentContentData,
 } from "@/services/documentService";
 import { sendConsentNotificationEmail } from "@/services/notificationService";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const PAGE_SIZE = 15;
 
 export interface TransformedRequest {
   raw: ConsentRequestItem;
@@ -168,9 +172,10 @@ export default function RequestListPage() {
   const [error, setError] = useState<string | null>(null);
   const [copiedUrlId, setCopiedUrlId] = useState<string | null>(null);
 
-  // Search & Filter states
+  // Search, Filter & Pagination states
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All Status");
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Selected Request for Right Drawer
   const [selectedRequest, setSelectedRequest] = useState<TransformedRequest | null>(null);
@@ -186,6 +191,34 @@ export default function RequestListPage() {
   const [docModalError, setDocModalError] = useState<string | null>(null);
   const [useSampleFallback, setUseSampleFallback] = useState<boolean>(false);
   const [selectedSampleDoc, setSelectedSampleDoc] = useState(SAMPLE_FALLBACK_DOCUMENTS[0]);
+
+  // Generate a clean native Blob URL for document preview (prevents raw data-uri text strings in DOM/iframes)
+  const previewBlobUrl = useMemo(() => {
+    if (!documentContent?.base64_content) return null;
+    try {
+      const cleanBase64 = documentContent.base64_content.replace(/\s/g, "");
+      const byteCharacters = atob(cleanBase64);
+      const byteNumbers = new Uint8Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const cleanMime = normalizeMimeType(documentContent.mime, cleanBase64, "application/pdf");
+      const blob = new Blob([byteNumbers], { type: cleanMime });
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      console.error("Failed to construct preview blob URL:", e);
+      return null;
+    }
+  }, [documentContent]);
+
+  // Revoke previous Blob URL when preview changes or component unmounts to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (previewBlobUrl) {
+        URL.revokeObjectURL(previewBlobUrl);
+      }
+    };
+  }, [previewBlobUrl]);
 
   // Transform raw API consent records into table presentation format
   const transformConsentItems = useCallback((items: ConsentRequestItem[]): TransformedRequest[] => {
@@ -314,6 +347,18 @@ export default function RequestListPage() {
     });
   }, [requests, searchQuery, selectedStatus]);
 
+  // Reset pagination when filters change (matching EntityListPage)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedStatus]);
+
+  // Pagination Logic (15 per page - matching EntityListPage)
+  const totalPages = Math.ceil(filteredRequests.length / PAGE_SIZE) || 1;
+  const paginatedRequests = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredRequests.slice(start, start + PAGE_SIZE);
+  }, [filteredRequests, currentPage]);
+
   // Status badge style helper
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -415,19 +460,25 @@ export default function RequestListPage() {
     }
 
     try {
-      const byteCharacters = atob(documentContent.base64_content);
-      const byteNumbers = new Array(byteCharacters.length);
+      const cleanBase64 = documentContent.base64_content.replace(/\s/g, "");
+      const byteCharacters = atob(cleanBase64);
+      const byteNumbers = new Uint8Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
-      const byteArray = new Uint8Array(byteNumbers);
-      const mime = documentContent.mime || "application/pdf";
-      const blob = new Blob([byteArray], { type: mime });
+      const cleanMime = normalizeMimeType(documentContent.mime, cleanBase64, "application/pdf");
+      const blob = new Blob([byteNumbers], { type: cleanMime });
       const blobUrl = URL.createObjectURL(blob);
+
+      const ext = documentContent.file_extension || (cleanMime.includes("pdf") ? "pdf" : cleanMime.includes("png") ? "png" : "jpg");
+      let baseDocName = documentContent.file_name || selectedDocument.name || "document";
+      if (!baseDocName.toLowerCase().endsWith(`.${ext}`)) {
+        baseDocName = `${baseDocName}.${ext}`;
+      }
 
       const a = document.createElement("a");
       a.href = blobUrl;
-      a.download = documentContent.file_name || selectedDocument.name || "document.pdf";
+      a.download = baseDocName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -705,7 +756,7 @@ export default function RequestListPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#f1f5f9]">
-                  {filteredRequests.map((req) => (
+                  {paginatedRequests.map((req) => (
                     <tr
                       key={req.consentId}
                       onClick={() => setSelectedRequest(req)}
@@ -805,27 +856,45 @@ export default function RequestListPage() {
             )}
           </div>
 
-          {/* Table Pagination */}
-          <div className="flex items-center justify-between border-t border-[#f1f5f9] pt-4 text-[13px] font-bold text-text-mid">
-            <span>
-              Showing {filteredRequests.length > 0 ? 1 : 0} to {filteredRequests.length} of{" "}
-              {filteredRequests.length} entries
-            </span>
-            <div className="flex items-center gap-4">
+          {/* Pagination Bar (15 items per page - matching EntityListPage) */}
+          {!loadingRequests && !error && filteredRequests.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between border-t border-[#f1f5f9] pt-3 text-[12px] font-bold text-[#5e6272] gap-2">
+              <span>
+                Showing {Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredRequests.length)} to{" "}
+                {Math.min(currentPage * PAGE_SIZE, filteredRequests.length)} of {filteredRequests.length} entries (15 per page)
+              </span>
               <div className="flex items-center gap-1">
-                <button className="w-8 h-8 rounded-lg border border-[#e3e4ee] hover:bg-neutral-50 flex items-center justify-center cursor-pointer transition-colors">
-                  &lt;
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="w-7 h-7 rounded-lg border border-[#e3e4ee] hover:bg-neutral-50 flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Previous Page"
+                >
+                  <ChevronLeft size={14} />
                 </button>
-                <button className="w-8 h-8 rounded-lg bg-[#0089CF] text-white flex items-center justify-center shadow-sm">
-                  1
-                </button>
-                <button className="w-8 h-8 rounded-lg border border-[#e3e4ee] hover:bg-neutral-50 flex items-center justify-center cursor-pointer transition-colors">
-                  &gt;
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-7 h-7 rounded-lg text-[11.5px] font-bold flex items-center justify-center transition-all ${currentPage === page
+                      ? "bg-[#0089CF] text-white shadow-xs"
+                      : "border border-[#e3e4ee] hover:bg-neutral-50 text-[#10142d] cursor-pointer"
+                      }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="w-7 h-7 rounded-lg border border-[#e3e4ee] hover:bg-neutral-50 flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Next Page"
+                >
+                  <ChevronRight size={14} />
                 </button>
               </div>
-              <span className="text-[12px] text-text-mid font-normal">Page 1 of 1</span>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ══════════════ DETAILS SIDEBAR (DRAWER) ══════════════ */}
@@ -1274,22 +1343,24 @@ export default function RequestListPage() {
                           />
                         </div>
                       )
-                    ) : documentContent?.base64_content ? (
-                      documentContent.mime?.includes("image") ||
-                        documentContent.file_extension === "jpg" ||
-                        documentContent.file_extension === "png" ? (
+                    ) : previewBlobUrl ? (
+                      documentContent?.mime?.includes("image") ||
+                        documentContent?.file_extension === "jpg" ||
+                        documentContent?.file_extension === "png" ||
+                        documentContent?.base64_content?.startsWith("/9j/") ||
+                        documentContent?.base64_content?.startsWith("iVBOR") ? (
                         <div className="flex h-full items-center justify-center overflow-auto p-6">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={`data:${documentContent.mime || "image/jpeg"};base64,${documentContent.base64_content}`}
-                            alt={documentContent.name || "Document Preview"}
+                            src={previewBlobUrl}
+                            alt={documentContent?.name || "Document Preview"}
                             className="max-h-full max-w-full rounded-[8px] object-contain shadow-[0_2px_12px_rgba(18,22,46,0.16)]"
                           />
                         </div>
                       ) : (
                         <iframe
-                          title={documentContent.name || "PDF Document"}
-                          src={`data:${documentContent.mime || "application/pdf"};base64,${documentContent.base64_content}`}
+                          title={documentContent?.name || "PDF Document"}
+                          src={previewBlobUrl}
                           className="h-full w-full border-0 bg-white"
                         />
                       )
